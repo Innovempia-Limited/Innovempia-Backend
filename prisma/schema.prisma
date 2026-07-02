@@ -60,6 +60,7 @@ model MentorshipCourse {
   instructorName    String
   instructorBio     String   @default("")
   instructorImage   String?
+  totalDuration     Int?      
   isActive          Boolean  @default(true)
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
@@ -67,6 +68,7 @@ model MentorshipCourse {
   subCategories     CourseSubCategory[]
   enrollments       Enrollment[]
   dayContents       DayContent[]
+
 
   @@map("mentorship_courses")
 }
@@ -76,6 +78,7 @@ model CourseSubCategory {
   name              String
   order             Int
   courseId          String
+  duration          Int    
   course            MentorshipCourse @relation(fields: [courseId], references: [id], onDelete: Cascade)
 
   enrollments       Enrollment[]

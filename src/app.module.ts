@@ -8,6 +8,7 @@ import { CoursesModule } from './courses/courses.module';
 import { EmailModule } from './email/email.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { StudentsModule } from './students/students.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { PrismaModule } from './prisma/prisma.module';
     EmailModule,
     NotificationsModule,
     AdminModule,
+    StudentsModule,
   ],
   providers: [
     {

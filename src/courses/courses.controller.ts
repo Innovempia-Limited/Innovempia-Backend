@@ -48,12 +48,13 @@ export class CoursesController {
   @ApiBearerAuth()
   @ApiConsumes('multipart/form-data')
   @ApiOperation({ summary: 'Create a new mentorship course (with media)' })
-  @ApiBody({
+   @ApiBody({
     schema: {
       type: 'object',
       properties: {
         title: { type: 'string', example: 'Frontend Development' },
         type: { type: 'string', enum: ['TRACK', 'SPECIFIC_LANGUAGE'], example: 'TRACK' },
+        totalDays: { type: 'string', example: '90', description: 'Overall duration in days' }, 
         description: { type: 'string', example: 'Master HTML, CSS, and JS' },
         requirements: { type: 'string', example: 'A laptop' },
         instructorName: { type: 'string', example: 'Jane Doe' },

@@ -33,6 +33,11 @@ export class UpdateCourseDto {
   @IsOptional()
   instructorBio?: string;
 
+  @ApiPropertyOptional({ example: '90', description: 'Total duration in days (Optional for tracks, required for specific languages)' })
+  @IsString()
+  @IsOptional()
+  totalDays?: string;
+  
   // File fields
   @ApiPropertyOptional({ type: 'string', format: 'binary' })
   @IsOptional()

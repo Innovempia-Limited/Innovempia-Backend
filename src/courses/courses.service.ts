@@ -24,7 +24,7 @@ export class CoursesService {
     private supabase: SupabaseService,
   ) {}
 
-  async createCourse(dto: CreateCourseDto, files: any) {
+    async createCourse(dto: CreateCourseDto, files: any) {
     let imageUrl: string | undefined;
     let videoUrl: string | undefined;
     let instructorImage: string | undefined;
@@ -37,6 +37,7 @@ export class CoursesService {
       data: {
         title: dto.title,
         type: dto.type as any,
+        totalDays: dto.totalDays ? parseInt(dto.totalDays, 10) : null, // ADD THIS
         description: dto.description || '',
         requirements: dto.requirements || '',
         instructorName: dto.instructorName,
@@ -68,6 +69,7 @@ export class CoursesService {
         ...(dto.requirements !== undefined && { requirements: dto.requirements }),
         ...(dto.instructorName && { instructorName: dto.instructorName }),
         ...(dto.instructorBio !== undefined && { instructorBio: dto.instructorBio }),
+        ...(dto.totalDays !== undefined && { totalDays: dto.totalDays ? parseInt(dto.totalDays, 10) : null }),
         imageUrl,
         videoUrl,
         instructorImage,

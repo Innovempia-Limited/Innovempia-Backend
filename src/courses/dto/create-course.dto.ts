@@ -13,6 +13,11 @@ export class CreateCourseDto {
   @IsNotEmpty()
   type!: string;
 
+  @ApiPropertyOptional({ example: '90', description: 'Total duration in days (Optional for tracks, required for specific languages)' })
+  @IsString()
+  @IsOptional()
+  totalDays?: string;
+
   @ApiPropertyOptional({ example: 'Learn HTML, CSS, and JavaScript from scratch' })
   @IsString()
   @IsOptional()
@@ -33,7 +38,6 @@ export class CreateCourseDto {
   @IsOptional()
   instructorBio?: string;
 
-  // File fields - kept as optional strings so validation pipe doesn't block them
   @ApiPropertyOptional({ type: 'string', format: 'binary' })
   @IsOptional()
   @IsString()
