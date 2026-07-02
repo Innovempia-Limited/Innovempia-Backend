@@ -1,0 +1,57 @@
+{
+  "name": "innovempia-backend",
+  "version": "1.0.0",
+  "description": "The backend of the website including the mentorship program backend",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "build:nest": "nest build",
+    "start": "node dist/main",
+    "start:dev": "ts-node --transpile-only -P tsconfig.json src/main.ts",
+    "start:debug": "nest start --debug --watch",
+    "start:prod": "node dist/main"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Innovempia-Limited/Innovempia-Backend.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Innovempia-Limited/Innovempia-Backend/issues"
+  },
+  "homepage": "https://github.com/Innovempia-Limited/Innovempia-Backend#readme",
+  "dependencies": {
+    "@nestjs/common": "^11.1.27",
+    "@nestjs/config": "^4.0.4",
+    "@nestjs/core": "^11.1.27",
+    "@nestjs/jwt": "^11.0.2",
+    "@nestjs/passport": "^11.0.5",
+    "@nestjs/platform-express": "^11.1.27",
+    "@nestjs/swagger": "^11.4.5",
+    "@nestjs/typeorm": "^11.0.3",
+    "@prisma/client": "^6.19.3",
+    "bcryptjs": "^3.0.3",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.15.1",
+    "multer": "^2.2.0",
+    "passport": "^0.7.0",
+    "passport-jwt": "^4.0.1",
+    "pg": "^8.22.0",
+    "prisma": "^6.19.3",
+    "typeorm": "^1.0.0"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "^11.0.23",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/multer": "^2.1.0",
+    "@types/node": "^26.1.0",
+    "@types/passport-jwt": "^4.0.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^6.0.3"
+  }
+}
