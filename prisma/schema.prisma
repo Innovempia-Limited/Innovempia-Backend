@@ -12,11 +12,22 @@ enum UserRole {
   STUDENT
 }
 
-enum Track {
-  FRONTEND
-  BACKEND
-  ML
-  FULLSTACK
+enum CourseType {
+  TRACK
+  SPECIFIC_LANGUAGE
+}
+
+enum Level {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+  COMPLETED
+}
+
+enum EnrollmentStatus {
+  ACTIVE
+  SUSPENDED
+  COMPLETED
 }
 
 model User {
@@ -27,14 +38,77 @@ model User {
   lastName          String
   phone             String?
   role              UserRole @default(STUDENT)
-  track             Track?
-  specificLanguage  String?
-  experienceLevel   String?
-  whyJoin           String?
-  isProfileComplete Boolean  @default(false)
   isActive          Boolean  @default(true)
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
+  enrollments       Enrollment[]
+  notifications     Notification[]
+
   @@map("users")
+}
+
+model MentorshipCourse {
+  id                String   @id @default(uuid())
+  title             String
+  type              CourseType
+  description       String   @default("")
+  imageUrl          String?
+  videoUrl          String?
+  requirements      String   @default("")
+  instructorName    String
+  instructorBio     String   @default("")
+  instructorImage   String?
+  isActive          Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  subCategories     CourseSubCategory[]
+  enrollments       Enrollment[]
+
+  @@map("mentorship_courses")
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  title     String
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+model CourseSubCategory {
+  id                String   @id @default(uuid())
+  name              String
+  order             Int
+  courseId          String
+  course            MentorshipCourse @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  enrollments       Enrollment[]
+
+  @@map("course_sub_categories")
+}
+
+model Enrollment {
+  id                String           @id @default(uuid())
+  userId            String
+  courseId          String
+  currentSubCategoryId String?
+  currentDay        Int              @default(1)
+  level             Level            @default(BEGINNER)
+  status            EnrollmentStatus @default(ACTIVE)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  user              User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course            MentorshipCourse @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  currentSubCategory CourseSubCategory? @relation(fields: [currentSubCategoryId], references: [id])
+
+  @@unique([userId, courseId])
+  @@map("enrollments")
 }

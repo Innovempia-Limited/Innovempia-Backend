@@ -10,7 +10,6 @@ async function bootstrap() {
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
-      forbidNonWhitelisted: true,
       transform: true,
     }),
   );
@@ -22,7 +21,9 @@ async function bootstrap() {
     allowedHeaders: ['Content-Type', 'Authorization'],
   });
 
-  app.setGlobalPrefix('api');
+  app.setGlobalPrefix('api', {
+    exclude: ['docs/(.*)'],
+  });
 
   const config = new DocumentBuilder()
     .setTitle('Innovempia API')
@@ -38,6 +39,7 @@ async function bootstrap() {
 
   await app.listen(3000);
   console.log('Running at http://localhost:3000/api');
-  console.log('Swagger at http://localhost:3000/api/docs');
+  console.log('Swagger at http://localhost:3000/docs');
 }
+
 bootstrap();
