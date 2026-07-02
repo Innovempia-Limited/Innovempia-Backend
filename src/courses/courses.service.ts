@@ -162,7 +162,13 @@ export class CoursesService {
     const access_token = this.jwt.sign(payload);
 
     const admin = await this.prisma.user.findFirst({ where: { role: 'ADMIN' } });
-    const hasCurriculum = false;
+    const hasCurriculum = await this.prisma.dayContent.count({
+      where: {
+        courseId: course.id,
+        subCategoryId: startingSubId,
+        level: 'BEGINNER',
+      },
+    }) > 0;
 
     try {
       await this.emailService.sendStudentOnboarding(user.email, user.firstName, course.title);

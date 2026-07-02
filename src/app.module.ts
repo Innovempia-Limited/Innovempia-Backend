@@ -5,6 +5,7 @@ import { AdminModule } from './admin/admin.module';
 import { AuthModule } from './auth/auth.module';
 import { AuthService } from './auth/auth.service';
 import { CoursesModule } from './courses/courses.module';
+import { CurriculumModule } from './curriculum/curriculum.module';
 import { EmailModule } from './email/email.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { PrismaModule } from './prisma/prisma.module';
@@ -20,6 +21,7 @@ import { StudentsModule } from './students/students.module';
     NotificationsModule,
     AdminModule,
     StudentsModule,
+    CurriculumModule
   ],
   providers: [
     {
