@@ -1,17 +1,20 @@
 import {
   Injectable,
   UnauthorizedException,
-  ConflictException,
+  BadRequestException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 
 import * as bcrypt from 'bcryptjs';
 
+import { EmailService } from '../email/email.service';
 import { PrismaService } from '../prisma/prisma.service';
 
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { LoginDto } from './dto/login.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @Injectable()
 export class AuthService {
@@ -19,13 +22,14 @@ export class AuthService {
     private prisma: PrismaService,
     private jwt: JwtService,
     private config: ConfigService,
+    private emailService: EmailService,
   ) {}
 
   async login(dto: LoginDto) {
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
-    if (!user) {
+    if (!user || !user.isActive) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
@@ -48,8 +52,6 @@ export class AuthService {
         firstName: user.firstName,
         lastName: user.lastName,
         role: user.role,
-        track: user.track,
-        isProfileComplete: user.isProfileComplete,
       },
     };
   }
@@ -74,6 +76,63 @@ export class AuthService {
     return { message: 'Password changed successfully' };
   }
 
+  async forgotPassword(dto: ForgotPasswordDto) {
+    const user = await this.prisma.user.findUnique({ where: { email: dto.email } });
+    if (!user) {
+      throw new BadRequestException('If an account with that email exists, we sent an OTP.');
+    }
+
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    await this.prisma.otp.create({
+      data: {
+        email: dto.email,
+        code: otp,
+        expiresAt,
+      },
+    });
+
+    try {
+      await this.emailService.sendOtp(dto.email, otp);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error('Failed to send OTP email:', message);
+    }
+
+    return { message: 'OTP sent to your email.' };
+  }
+
+  async resetPassword(dto: ResetPasswordDto) {
+    const validOtp = await this.prisma.otp.findFirst({
+      where: {
+        email: dto.email,
+        code: dto.otp,
+        verified: false,
+        expiresAt: { gte: new Date() },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    if (!validOtp) {
+      throw new BadRequestException('Invalid or expired OTP.');
+    }
+
+    const hashed = await bcrypt.hash(dto.newPassword, 10);
+    await this.prisma.user.update({
+      where: { email: dto.email },
+      data: { password: hashed },
+    });
+
+    await this.prisma.otp.update({
+      where: { id: validOtp.id },
+      data: { verified: true },
+    });
+
+    return { message: 'Password reset successfully. You can now log in.' };
+  }
+
   async seedAdmin() {
     const email = this.config.get('ADMIN_EMAIL');
     const password = this.config.get('ADMIN_PASSWORD');
@@ -88,7 +147,6 @@ export class AuthService {
           firstName: 'Admin',
           lastName: 'Innovempia',
           role: 'ADMIN',
-          isProfileComplete: true,
         },
       });
       console.log('Default admin seeded');

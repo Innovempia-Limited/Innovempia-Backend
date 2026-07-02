@@ -44,6 +44,7 @@ model User {
 
   enrollments       Enrollment[]
   notifications     Notification[]
+  otps              Otp[]
 
   @@map("users")
 }
@@ -65,8 +66,41 @@ model MentorshipCourse {
 
   subCategories     CourseSubCategory[]
   enrollments       Enrollment[]
+  dayContents       DayContent[]
 
   @@map("mentorship_courses")
+}
+
+model CourseSubCategory {
+  id                String   @id @default(uuid())
+  name              String
+  order             Int
+  courseId          String
+  course            MentorshipCourse @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  enrollments       Enrollment[]
+  dayContents       DayContent[]
+
+  @@map("course_sub_categories")
+}
+
+model Enrollment {
+  id                  String           @id @default(uuid())
+  userId              String
+  courseId            String
+  currentSubCategoryId String?
+  currentDay          Int              @default(1)
+  level               Level            @default(BEGINNER)
+  status              EnrollmentStatus @default(ACTIVE)
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+
+  user                User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course              MentorshipCourse @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  currentSubCategory  CourseSubCategory? @relation(fields: [currentSubCategoryId], references: [id])
+
+  @@unique([userId, courseId])
+  @@map("enrollments")
 }
 
 model Notification {
@@ -82,33 +116,36 @@ model Notification {
   @@map("notifications")
 }
 
-model CourseSubCategory {
-  id                String   @id @default(uuid())
-  name              String
-  order             Int
-  courseId          String
-  course            MentorshipCourse @relation(fields: [courseId], references: [id], onDelete: Cascade)
+model Otp {
+  id        String   @id @default(uuid())
+  email     String
+  code      String
+  expiresAt DateTime
+  verified  Boolean  @default(false)
+  createdAt DateTime @default(now())
 
-  enrollments       Enrollment[]
+  user      User     @relation(fields: [email], references: [email], onDelete: Cascade)
 
-  @@map("course_sub_categories")
+  @@map("otps")
 }
 
-model Enrollment {
-  id                String           @id @default(uuid())
-  userId            String
-  courseId          String
-  currentSubCategoryId String?
-  currentDay        Int              @default(1)
-  level             Level            @default(BEGINNER)
-  status            EnrollmentStatus @default(ACTIVE)
-  createdAt         DateTime         @default(now())
-  updatedAt         DateTime         @updatedAt
+model DayContent {
+  id                  String   @id @default(uuid())
+  courseId            String
+  course              MentorshipCourse @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  subCategoryId       String?
+  subCategory         CourseSubCategory? @relation(fields: [subCategoryId], references: [id], onDelete: Cascade)
+  level               Level    @default(BEGINNER)
+  dayNumber           Int
+  materialText        String   @default("")
+  materialFileUrl     String?
+  projectDescription  String   @default("")
+  projectRequirements String   @default("")
+  submissionMethod    String   @default("GITHUB_LINK") // GITHUB_LINK, PASTED_CODE, FILE_UPLOAD, MIXED
+  isActive            Boolean  @default(true)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 
-  user              User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  course            MentorshipCourse @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  currentSubCategory CourseSubCategory? @relation(fields: [currentSubCategoryId], references: [id])
-
-  @@unique([userId, courseId])
-  @@map("enrollments")
+  @@unique([courseId, subCategoryId, level, dayNumber])
+  @@map("day_contents")
 }

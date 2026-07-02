@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 
+import { AdminModule } from './admin/admin.module';
 import { AuthModule } from './auth/auth.module';
 import { AuthService } from './auth/auth.service';
 import { CoursesModule } from './courses/courses.module';
@@ -16,6 +17,7 @@ import { PrismaModule } from './prisma/prisma.module';
     CoursesModule,
     EmailModule,
     NotificationsModule,
+    AdminModule,
   ],
   providers: [
     {

@@ -112,7 +112,43 @@ export class EmailService {
       html: this.buildTemplate(content),
     });
   }
+    async sendOtp(email: string, otp: string) {
+    const content = `
+      <div style="text-align: center; margin-bottom: 30px;">
+        <span style="font-size: 48px;">🔐</span>
+      </div>
+      <h2 style="margin: 0 0 15px 0; color: #111827; font-size: 24px; font-weight: 600;">
+        Password Reset Request
+      </h2>
+      <p style="margin: 0 0 25px 0; color: #4b5563; font-size: 16px; line-height: 1.6;">
+        You requested to reset your password. Use the OTP below to proceed. It expires in 10 minutes.
+      </p>
 
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin: 30px 0;">
+        <tr>
+          <td align="center">
+            <span style="background-color: #f3f4f6; color: #111827; font-size: 36px; font-weight: 700; letter-spacing: 10px; padding: 15px 40px; border-radius: 12px; border: 1px dashed #d1d5db;">
+              ${otp}
+            </span>
+          </td>
+        </tr>
+      </table>
+
+      <div style="background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px 20px; border-radius: 0 8px 8px 0; margin-top: 30px;">
+        <p style="margin: 0; color: #92400e; font-size: 14px; line-height: 1.5;">
+          <strong>⚠️ Security:</strong> If you did not request this, please ignore this email. Your password will remain unchanged.
+        </p>
+      </div>
+    `;
+
+    await this.transporter.sendMail({
+      from: `"Innovempia Security" <${this.config.get('FROM_EMAIL')}>`,
+      to: email,
+      subject: `Your Password Reset OTP: ${otp}`,
+      html: this.buildTemplate(content),
+    });
+  }
+  
   async sendAdminNewEnrollment(studentName: string, courseTitle: string, hasCurriculum: boolean) {
     const warningBlock = !hasCurriculum 
       ? `
@@ -177,4 +213,7 @@ export class EmailService {
       html: this.buildTemplate(content),
     });
   }
+
+
+  
 }
