@@ -18,6 +18,11 @@ export class CreateCourseDto {
   @IsOptional()
   totalDays?: string;
 
+  @ApiPropertyOptional({ type: 'string', format: 'binary', description: 'Course curriculum document (PDF/Doc)' })
+  @IsOptional()
+  @IsString()
+  curriculumDocument?: string;
+
   @ApiPropertyOptional({ example: 'Learn HTML, CSS, and JavaScript from scratch' })
   @IsString()
   @IsOptional()

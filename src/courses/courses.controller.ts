@@ -70,6 +70,7 @@ export class CoursesController {
       { name: 'image', maxCount: 1 },
       { name: 'video', maxCount: 1 },
       { name: 'instructorImage', maxCount: 1 },
+      { name: 'curriculumDocument', maxCount: 1 },
     ]),
   )
   async createCourse(
@@ -106,6 +107,7 @@ export class CoursesController {
       { name: 'image', maxCount: 1 },
       { name: 'video', maxCount: 1 },
       { name: 'instructorImage', maxCount: 1 },
+      { name: 'curriculumDocument', maxCount: 1 },
     ]),
   )
   async updateCourse(

@@ -24,20 +24,22 @@ export class CoursesService {
     private supabase: SupabaseService,
   ) {}
 
-    async createCourse(dto: CreateCourseDto, files: any) {
+      async createCourse(dto: CreateCourseDto, files: any) {
     let imageUrl: string | undefined;
     let videoUrl: string | undefined;
     let instructorImage: string | undefined;
+    let curriculumDocumentUrl: string | undefined; // ADD
 
     if (files.image?.[0]) imageUrl = await this.supabase.uploadFile(files.image[0], 'courses');
     if (files.video?.[0]) videoUrl = await this.supabase.uploadFile(files.video[0], 'courses');
     if (files.instructorImage?.[0]) instructorImage = await this.supabase.uploadFile(files.instructorImage[0], 'instructors');
+    if (files.curriculumDocument?.[0]) curriculumDocumentUrl = await this.supabase.uploadFile(files.curriculumDocument[0], 'curriculums'); // ADD
 
     return this.prisma.mentorshipCourse.create({
       data: {
         title: dto.title,
         type: dto.type as any,
-        totalDays: dto.totalDays ? parseInt(dto.totalDays, 10) : null, // ADD THIS
+        totalDays: dto.totalDays ? parseInt(dto.totalDays, 10) : null,
         description: dto.description || '',
         requirements: dto.requirements || '',
         instructorName: dto.instructorName,
@@ -45,6 +47,7 @@ export class CoursesService {
         imageUrl,
         videoUrl,
         instructorImage,
+        curriculumDocumentUrl, // ADD
       },
     });
   }
@@ -90,7 +93,15 @@ export class CoursesService {
     if (!course) throw new BadRequestException('Course not found');
     if (course.type !== 'TRACK') throw new BadRequestException('Only TRACK courses can have sub-categories');
 
-    return this.prisma.courseSubCategory.create({ data: { ...dto, courseId } });
+    return this.prisma.courseSubCategory.create({
+      data: {
+        courseId,
+        name: dto.name,
+        order: dto.order,
+        duration: dto.durationDays,
+        curriculumDocumentUrl: dto.curriculumDocument,
+      },
+    });
   }
 
   async updateSubCategory(subId: string, dto: UpdateSubCategoryDto) {

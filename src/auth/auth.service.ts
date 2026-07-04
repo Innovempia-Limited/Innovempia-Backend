@@ -75,7 +75,7 @@ export class AuthService {
 
     return { message: 'Password changed successfully' };
   }
-
+  
   async forgotPassword(dto: ForgotPasswordDto) {
     const user = await this.prisma.user.findUnique({ where: { email: dto.email } });
     if (!user) {

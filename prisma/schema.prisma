@@ -54,13 +54,14 @@ model MentorshipCourse {
   title             String
   type              CourseType
   description       String   @default("")
+  curriculumDocumentUrl String? 
   imageUrl          String?
   videoUrl          String?
   requirements      String   @default("")
   instructorName    String
   instructorBio     String   @default("")
   instructorImage   String?
-  totalDuration     Int?      
+  totalDays         Int?     
   isActive          Boolean  @default(true)
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
@@ -80,7 +81,7 @@ model CourseSubCategory {
   courseId          String
   duration          Int    
   course            MentorshipCourse @relation(fields: [courseId], references: [id], onDelete: Cascade)
-
+  curriculumDocumentUrl String?
   enrollments       Enrollment[]
   dayContents       DayContent[]
 
@@ -101,7 +102,7 @@ model Enrollment {
   user                User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   course              MentorshipCourse @relation(fields: [courseId], references: [id], onDelete: Cascade)
   currentSubCategory  CourseSubCategory? @relation(fields: [currentSubCategoryId], references: [id])
-
+  submissions          DaySubmission[]   // <--- ADD THIS
   @@unique([userId, courseId])
   @@map("enrollments")
 }
@@ -151,4 +152,22 @@ model DayContent {
 
   @@unique([courseId, subCategoryId, level, dayNumber])
   @@map("day_contents")
+}
+model DaySubmission {
+  id                   String    @id @default(uuid())
+  enrollmentId         String
+  enrollment           Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  dayNumber            Int
+  submissionContent    String    @default("")
+  submissionFileUrl    String?
+  status               String    @default("PENDING") // PENDING, SUCCESS, NEEDS_CORRECTION
+  quizScore            Float?
+  projectScore         Float?
+  overallScore         Float?
+  feedbackDocumentUrl  String?
+  gradedAt             DateTime?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  @@map("day_submissions")
 }

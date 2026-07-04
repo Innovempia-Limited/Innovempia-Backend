@@ -6,6 +6,22 @@ import { PrismaService } from '../prisma/prisma.service';
 export class AdminService {
   constructor(private prisma: PrismaService) {}
 
+  async suspendStudent(studentId: string) {
+    await this.prisma.user.findFirstOrThrow({ where: { id: studentId, role: 'STUDENT' } });
+    return this.prisma.user.update({
+      where: { id: studentId },
+      data: { isActive: false },
+    });
+  }
+
+  async unsuspendStudent(studentId: string) {
+    await this.prisma.user.findFirstOrThrow({ where: { id: studentId, role: 'STUDENT' } });
+    return this.prisma.user.update({
+      where: { id: studentId },
+      data: { isActive: true },
+    });
+  }
+
   async getAllStudents() {
     return this.prisma.user.findMany({
       where: { role: 'STUDENT' },

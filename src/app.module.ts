@@ -10,6 +10,7 @@ import { EmailModule } from './email/email.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { StudentsModule } from './students/students.module';
+import { SubmissionsModule } from './submissions/submissions.module';
 
 @Module({
   imports: [
@@ -21,7 +22,8 @@ import { StudentsModule } from './students/students.module';
     NotificationsModule,
     AdminModule,
     StudentsModule,
-    CurriculumModule
+    CurriculumModule,
+    SubmissionsModule
   ],
   providers: [
     {
