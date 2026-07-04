@@ -1,5 +1,6 @@
-import { Controller, Get, Post, Param, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
+import { Body, Controller, Get, Post, Param, UploadedFiles, UseGuards, UseInterceptors } from '@nestjs/common';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse, ApiConsumes, ApiBody } from '@nestjs/swagger';
 
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -7,6 +8,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 
 import { AdminService } from './admin.service';
+import { UpdateLevelDto } from './dto/update-level.dto';
 
 @ApiTags('Admin')
 @Controller('admin')
@@ -47,5 +49,27 @@ export class AdminController {
   async getProfile(@CurrentUser() user: any) {
     const { password, ...profile } = user;
     return profile;
+  }
+
+   @Post('students/:id/update-level')
+  @ApiOperation({ summary: 'Update student level (triggers payment logic if INTERMEDIATE/ADVANCED)' })
+  async updateLevel(@Param('id') id: string, @Body() dto: UpdateLevelDto) {
+    return this.adminService.updateStudentLevel(id, dto);
+  }
+
+  @Post('certificates/:enrollmentId')
+  @ApiConsumes('multipart/form-data')
+  @ApiOperation({ summary: 'Upload certificate for a completed enrollment' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        certificate: { type: 'string', format: 'binary', description: 'Certificate PDF/Image' },
+      },
+    },
+  })
+  @UseInterceptors(FileFieldsInterceptor([{ name: 'certificate', maxCount: 1 }]))
+  async uploadCertificate(@Param('enrollmentId') enrollmentId: string, @UploadedFiles() files: any) {
+    return this.adminService.uploadCertificate(enrollmentId, files);
   }
 }

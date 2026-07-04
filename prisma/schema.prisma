@@ -45,8 +45,24 @@ model User {
   enrollments       Enrollment[]
   notifications     Notification[]
   otps              Otp[]
+  meetingRequests   MeetingRequest[]
 
   @@map("users")
+}
+
+model MeetingRequest {
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  topic         String
+  proposedDate  String
+  proposedTime  String
+  status        String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  adminMessage  String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("meeting_requests")
 }
 
 model MentorshipCourse {
@@ -88,6 +104,16 @@ model CourseSubCategory {
   @@map("course_sub_categories")
 }
 
+model Certificate {
+  id            String     @id @default(uuid())
+  enrollmentId  String     @unique
+  enrollment    Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  fileUrl       String
+  issuedAt      DateTime   @default(now())
+
+  @@map("certificates")
+}
+
 model Enrollment {
   id                  String           @id @default(uuid())
   userId              String
@@ -98,6 +124,7 @@ model Enrollment {
   status              EnrollmentStatus @default(ACTIVE)
   createdAt           DateTime         @default(now())
   updatedAt           DateTime         @updatedAt
+  certificate        Certificate?
 
   user                User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   course              MentorshipCourse @relation(fields: [courseId], references: [id], onDelete: Cascade)

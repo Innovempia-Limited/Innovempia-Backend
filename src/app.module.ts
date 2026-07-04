@@ -7,6 +7,7 @@ import { AuthService } from './auth/auth.service';
 import { CoursesModule } from './courses/courses.module';
 import { CurriculumModule } from './curriculum/curriculum.module';
 import { EmailModule } from './email/email.module';
+import { MeetingsModule } from './meetings/meetings.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { StudentsModule } from './students/students.module';
@@ -23,7 +24,8 @@ import { SubmissionsModule } from './submissions/submissions.module';
     AdminModule,
     StudentsModule,
     CurriculumModule,
-    SubmissionsModule
+    SubmissionsModule,
+    MeetingsModule
   ],
   providers: [
     {
