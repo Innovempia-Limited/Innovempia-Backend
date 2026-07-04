@@ -38,7 +38,7 @@ export class PaymentsService {
       }),
     });
 
-    const data = await res.json();
+    const data = await res.json() as any;
     if (!data.status) throw new BadRequestException('Could not initialize payment');
 
     await this.prisma.paymentRecord.create({
@@ -60,9 +60,6 @@ export class PaymentsService {
 
     const amountInKobo = 25000 * 100;
 
-    // Create plan on the fly if you want, or use a fixed one. For simplicity, we use standard transaction first, 
-    // then you migrate them to a subscription on Paystack dashboard later, OR we create a plan via API.
-    // To keep it robust and manual as requested, we do a standard 25k payment.
     const res = await fetch('https://api.paystack.co/transaction/initialize', {
       method: 'POST',
       headers: this.getHeaders(),
@@ -73,7 +70,7 @@ export class PaymentsService {
       }),
     });
 
-    const data = await res.json();
+    const data = await res.json() as any;
     if (!data.status) throw new BadRequestException('Could not initialize subscription payment');
 
     await this.prisma.paymentRecord.create({
@@ -83,7 +80,7 @@ export class PaymentsService {
         amount: 25000,
         status: 'PENDING',
         paystackReference: data.data.reference,
-        endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+        endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       },
     });
 
@@ -96,14 +93,14 @@ export class PaymentsService {
       headers: this.getHeaders(),
     });
 
-    const data = await res.json();
+    const data = await res.json() as any;
     if (!data.status || data.data.status !== 'success') {
       throw new BadRequestException('Payment not successful');
     }
 
     const payment = await this.prisma.paymentRecord.findUnique({ where: { paystackReference: reference } });
     if (!payment) throw new BadRequestException('Payment record not found');
-    if (payment.status === 'SUCCESS') return payment; // Idempotency
+    if (payment.status === 'SUCCESS') return payment;
 
     const updatedPayment = await this.prisma.paymentRecord.update({
       where: { paystackReference: reference },
@@ -112,7 +109,6 @@ export class PaymentsService {
 
     const user = await this.prisma.user.findUnique({ where: { id: payment.userId } });
 
-    // Handle Standalone Course Success
     if (payment.type === 'STANDALONE_COURSE') {
       const courseId = data.data.metadata.course_id;
       const course = await this.prisma.standaloneCourse.findUnique({ where: { id: courseId } });
@@ -120,13 +116,8 @@ export class PaymentsService {
       if (user && course) {
         try {
           await this.emailService.sendCoursePurchaseEmail(user.email, user.firstName, course.title, course.whatsappGroupLink);
-        } catch (e) { console.error('Email failed', e.message); }
+        } catch (err: any) { console.error('Email failed', err.message); }
       }
-    }
-
-    // Handle Subscription Success
-    if (payment.type === 'SUBSCRIPTION') {
-      // You can send a welcome to intermediate email here
     }
 
     return updatedPayment;

@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+
 import { PrismaClient } from '@prisma/client';
 
 import * as nodemailer from 'nodemailer';
@@ -214,7 +215,38 @@ export class EmailService {
       html: this.buildTemplate(content),
     });
   }
-
+  async sendCoursePurchaseEmail(email: string, firstName: string, courseTitle: string, whatsappLink: string | null) {
+    const content = `
+      <div style="text-align: center; margin-bottom: 30px;">
+        <span style="font-size: 48px;">🎓</span>
+      </div>
+      <h2 style="margin: 0 0 15px 0; color: #111827; font-size: 24px; font-weight: 600;">
+        Payment Successful!
+      </h2>
+      <p style="margin: 0 0 25px 0; color: #4b5563; font-size: 16px; line-height: 1.6;">
+        Hi ${firstName}, your payment for <strong>${courseTitle}</strong> was successful. Welcome to the class!
+      </p>
+      ${
+        whatsappLink ? `
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin: 30px 0;">
+          <tr>
+            <td align="center">
+              <a href="${whatsappLink}" target="_blank" style="background-color: #25D366; color: #ffffff; text-decoration: none; padding: 14px 35px; border-radius: 50px; font-weight: 600; font-size: 16px; display: inline-block;">
+                Join WhatsApp Group
+              </a>
+            </td>
+          </tr>
+        </table>` : ''
+      }
+    `;
+    await this.transporter.sendMail({
+      from: `"Innovempia" <${this.config.get('FROM_EMAIL')}>`,
+      to: email,
+      subject: `Access Granted: ${courseTitle}`,
+      html: this.buildTemplate(content),
+    });
+  }
+  
     async sendBulkEmail(subject: string, htmlMessage: string) {
     const prisma = new PrismaClient();
     
