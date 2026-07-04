@@ -30,6 +30,17 @@ enum EnrollmentStatus {
   COMPLETED
 }
 
+enum PaymentType {
+  SUBSCRIPTION
+  STANDALONE_COURSE
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
 model User {
   id                String   @id @default(uuid())
   email             String   @unique
@@ -45,25 +56,12 @@ model User {
   enrollments       Enrollment[]
   notifications     Notification[]
   otps              Otp[]
+  questions         QandA[]
   meetingRequests   MeetingRequest[]
-  questions          QandA[]
+  payments          PaymentRecord[]
+  jobApplications   JobApplication[]
 
   @@map("users")
-}
-
-model MeetingRequest {
-  id            String   @id @default(uuid())
-  userId        String
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  topic         String
-  proposedDate  String
-  proposedTime  String
-  status        String   @default("PENDING") // PENDING, APPROVED, REJECTED
-  adminMessage  String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  @@map("meeting_requests")
 }
 
 model MentorshipCourse {
@@ -105,16 +103,6 @@ model CourseSubCategory {
   @@map("course_sub_categories")
 }
 
-model Certificate {
-  id            String     @id @default(uuid())
-  enrollmentId  String     @unique
-  enrollment    Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
-  fileUrl       String
-  issuedAt      DateTime   @default(now())
-
-  @@map("certificates")
-}
-
 model Enrollment {
   id                  String           @id @default(uuid())
   userId              String
@@ -125,12 +113,12 @@ model Enrollment {
   status              EnrollmentStatus @default(ACTIVE)
   createdAt           DateTime         @default(now())
   updatedAt           DateTime         @updatedAt
-  certificate        Certificate?
 
   user                User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   course              MentorshipCourse @relation(fields: [courseId], references: [id], onDelete: Cascade)
   currentSubCategory  CourseSubCategory? @relation(fields: [currentSubCategoryId], references: [id])
   submissions         DaySubmission[]
+  certificate         Certificate?
 
   @@unique([userId, courseId])
   @@map("enrollments")
@@ -202,6 +190,16 @@ model DaySubmission {
   @@map("day_submissions")
 }
 
+model Certificate {
+  id            String     @id @default(uuid())
+  enrollmentId  String     @unique
+  enrollment    Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  fileUrl       String
+  issuedAt      DateTime   @default(now())
+
+  @@map("certificates")
+}
+
 model QandA {
   id            String   @id @default(uuid())
   userId        String
@@ -214,4 +212,187 @@ model QandA {
   updatedAt     DateTime @updatedAt
 
   @@map("q_and_a")
+}
+
+model MeetingRequest {
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  topic         String
+  proposedDate  String
+  proposedTime  String
+  status        String   @default("PENDING")
+  adminMessage  String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("meeting_requests")
+}
+
+// --- NEW CMS & E-COMMERCE TABLES ---
+
+model NewsletterSubscriber {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  createdAt DateTime @default(now())
+
+  @@map("newsletter_subscribers")
+}
+
+model TeamMember {
+  id          String   @id @default(uuid())
+  name        String
+  position    String
+  email       String?
+  imageUrl    String?
+  twitterUrl  String?
+  linkedinUrl String?
+  githubUrl   String?
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  @@map("team_members")
+}
+
+model PortfolioProject {
+  id                  String   @id @default(uuid())
+  title               String
+  description         String   @default("")
+  demoUrl             String?
+  sourceCodeUrl       String?
+  liveUrl             String?
+  duration            String?
+  backgroundImageUrl  String?
+  isActive            Boolean  @default(true)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  images              PortfolioProjectImage[]
+
+  @@map("portfolio_projects")
+}
+
+model PortfolioProjectImage {
+  id          String   @id @default(uuid())
+  url         String
+  projectId   String
+  project     PortfolioProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("portfolio_project_images")
+}
+
+model BlogPost {
+  id            String   @id @default(uuid())
+  title         String
+  slug          String   @unique
+  content       String   @default("") // HTML content
+  coverImageUrl String?
+  authorName    String?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("blog_posts")
+}
+
+model Event {
+  id               String   @id @default(uuid())
+  title            String
+  description      String   @default("")
+  date             String
+  time             String?
+  location         String?
+  coverImageUrl    String?
+  registrationLink String?
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+
+  @@map("events")
+}
+
+model JobRole {
+  id            String   @id @default(uuid())
+  title         String
+  type          String   @default("Remote") // Remote, Onsite, Hybrid
+  description   String   @default("")
+  requirements  String   @default("")
+  salaryRange   String?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  applications  JobApplication[]
+
+  @@map("job_roles")
+}
+
+model JobApplication {
+  id          String   @id @default(uuid())
+  jobId       String
+  job         JobRole  @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  fullName    String
+  email       String
+  phone       String?
+  resumeUrl   String?
+  createdAt   DateTime @default(now())
+
+  @@map("job_applications")
+}
+
+model CustomProjectRequest {
+  id          String   @id @default(uuid())
+  name        String
+  email       String
+  phone       String?
+  description String
+  budget      String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  images      CustomProjectImage[]
+
+  @@map("custom_project_requests")
+}
+
+model CustomProjectImage {
+  id          String   @id @default(uuid())
+  url         String
+  requestId   String
+  request     CustomProjectRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  @@map("custom_project_images")
+}
+
+model StandaloneCourse {
+  id                String   @id @default(uuid())
+  title             String
+  description       String   @default("")
+  price             Float
+  coverImageUrl     String?
+  content           String   @default("") // HTML content
+  whatsappGroupLink String?
+  isActive          Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@map("standalone_courses")
+}
+
+model PaymentRecord {
+  id                     String       @id @default(uuid())
+  userId                 String
+  user                   User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type                   PaymentType
+  amount                 Float
+  status                 PaymentStatus @default(PENDING)
+  paystackReference      String       @unique
+  paystackSubscriptionCode String?
+  endDate                DateTime?
+  isActive               Boolean      @default(true)
+  createdAt              DateTime     @default(now())
+  updatedAt              DateTime     @updatedAt
+
+  @@map("payment_records")
 }

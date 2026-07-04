@@ -56,15 +56,10 @@ export class AdminService {
     return this.prisma.user.update({ where: { id: studentId }, data: { isActive: true } });
   }
 
-  async updateStudentLevel(studentId: string, dto: UpdateLevelDto) {
+    async updateStudentLevel(studentId: string, dto: UpdateLevelDto) {
     const user = await this.prisma.user.findFirstOrThrow({ where: { id: studentId, role: 'STUDENT' } });
-    
-    // Get active enrollments to update
-    const enrollments = await this.prisma.enrollment.findMany({
-      where: { userId: studentId, status: 'ACTIVE' },
-    });
-
-    if (enrollments.length === 0) throw new BadRequestException('No active enrollments found for this student');
+    const enrollments = await this.prisma.enrollment.findMany({ where: { userId: studentId, status: 'ACTIVE' } });
+    if (enrollments.length === 0) throw new BadRequestException('No active enrollments');
 
     const newStatus = dto.level === 'COMPLETED' ? 'COMPLETED' : 'ACTIVE';
 
@@ -73,20 +68,29 @@ export class AdminService {
       data: { 
         level: dto.level as any, 
         status: newStatus,
-        // If leveling up, reset day to 1 for the new curriculum
         ...(dto.level !== 'BEGINNER' && dto.level !== 'COMPLETED' && { currentDay: 1 })
       },
     });
 
+    // Handle Subscription Cancellation if completed
+    if (dto.level === 'COMPLETED') {
+      const activeSub = await this.prisma.paymentRecord.findFirst({
+        where: { userId: studentId, type: 'SUBSCRIPTION', status: 'SUCCESS', isActive: true }
+      });
+      if (activeSub) {
+        await this.prisma.paymentRecord.update({ where: { id: activeSub.id }, data: { isActive: false } });
+        // Note: In a full webhook setup, you'd call Paystack API here to disable the recurring token.
+      }
+    }
+
     let message = `Your level has been updated to ${dto.level}.`;
     if (dto.level === 'INTERMEDIATE' || dto.level === 'ADVANCED') {
-      message += ` Please note that a monthly fee of 25,000 Naira now applies. Your curriculum has been reset to Day 1 for this level.`;
+      message += ` Please complete your 25,000 Naira monthly subscription payment to access the new curriculum.`;
     } else if (dto.level === 'COMPLETED') {
-      message += ` Congratulations on completing the program!`;
+      message += ` Congratulations! Your subscription has been cancelled.`;
     }
 
     await this.notifService.create(user.id, 'Level Updated', message);
-
     return { message: `Student level updated to ${dto.level}` };
   }
 
