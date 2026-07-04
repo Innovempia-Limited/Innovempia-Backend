@@ -4,10 +4,9 @@
   "description": "The backend of the website including the mentorship program backend",
   "main": "index.js",
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
-    "build:nest": "nest build",
+    "build": "npx prisma generate && nest build",
     "start": "node dist/main",
-    "start:dev": "ts-node --transpile-only -P tsconfig.json src/main.ts",
+    "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main"
   },
