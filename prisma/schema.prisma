@@ -46,6 +46,7 @@ model User {
   notifications     Notification[]
   otps              Otp[]
   meetingRequests   MeetingRequest[]
+  questions          QandA[]
 
   @@map("users")
 }
@@ -199,4 +200,18 @@ model DaySubmission {
   updatedAt            DateTime  @updatedAt
 
   @@map("day_submissions")
+}
+
+model QandA {
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  enrollmentId  String
+  question      String
+  adminReply    String?
+  isRead        Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("q_and_a")
 }

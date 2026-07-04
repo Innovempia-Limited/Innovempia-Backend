@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { PrismaClient } from '@prisma/client';
 
 import * as nodemailer from 'nodemailer';
 
@@ -214,6 +215,42 @@ export class EmailService {
     });
   }
 
+    async sendBulkEmail(subject: string, htmlMessage: string) {
+    const prisma = new PrismaClient();
+    
+    const students = await prisma.user.findMany({
+      where: { role: 'STUDENT', isActive: true },
+      select: { email: true },
+    });
+
+    if (students.length === 0) {
+      return { message: 'No active students to email.' };
+    }
+
+    const emailList = students.map(s => s.email);
+
+    const content = `
+      <div style="text-align: center; margin-bottom: 30px;">
+        <span style="font-size: 48px;">📢</span>
+      </div>
+      <h2 style="margin: 0 0 15px 0; color: #111827; font-size: 24px; font-weight: 600;">
+        ${subject}
+      </h2>
+      <div style="color: #4b5563; font-size: 16px; line-height: 1.6;">
+        ${htmlMessage}
+      </div>
+    `;
+
+    await this.transporter.sendMail({
+      from: `"Innovempia" <${this.config.get('FROM_EMAIL')}>`,
+      to: this.config.get('FROM_EMAIL'), // Send to self (BCC students for privacy)
+      bcc: emailList.join(', '),
+      subject: `[Innovempia] ${subject}`,
+      html: this.buildTemplate(content),
+    });
+
+    return { message: `Email sent to ${students.length} students.` };
+  }
 
   
 }

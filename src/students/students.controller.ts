@@ -44,4 +44,10 @@ export class StudentsController {
   async getSubmissions(@CurrentUser('id') userId: string, @Param('enrollmentId') enrollmentId: string) {
     return this.studentsService.getSubmissionHistory(userId, enrollmentId);
   }
+
+  @Get('certificates/:enrollmentId')
+  @ApiOperation({ summary: 'Download my certificate for a completed course' })
+  async getCertificate(@CurrentUser('id') userId: string, @Param('enrollmentId') enrollmentId: string) {
+    return this.studentsService.getMyCertificate(enrollmentId, userId);
+  }
 }

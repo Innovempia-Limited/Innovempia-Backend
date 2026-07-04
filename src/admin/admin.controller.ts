@@ -2,12 +2,15 @@ import { Body, Controller, Get, Post, Param, UploadedFiles, UseGuards, UseInterc
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse, ApiConsumes, ApiBody } from '@nestjs/swagger';
 
+import { EmailService } from '../email/email.service';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
+import { SendBulkEmailDto } from '../qa/dto/send-bulk-email.dto';
 
 import { AdminService } from './admin.service';
+
 import { UpdateLevelDto } from './dto/update-level.dto';
 
 @ApiTags('Admin')
@@ -16,7 +19,10 @@ import { UpdateLevelDto } from './dto/update-level.dto';
 @Roles('ADMIN')
 @ApiBearerAuth()
 export class AdminController {
-  constructor(private adminService: AdminService) {}
+  constructor(
+    private adminService: AdminService,
+    private emailService: EmailService,
+  ) {}
 
   @Get('students')
   @ApiOperation({ summary: 'Get all students with their enrolled courses' })
@@ -44,14 +50,7 @@ export class AdminController {
     return this.adminService.unsuspendStudent(id);
   }
 
-  @Get('profile')
-  @ApiOperation({ summary: 'Get admin profile' })
-  async getProfile(@CurrentUser() user: any) {
-    const { password, ...profile } = user;
-    return profile;
-  }
-
-   @Post('students/:id/update-level')
+  @Post('students/:id/update-level')
   @ApiOperation({ summary: 'Update student level (triggers payment logic if INTERMEDIATE/ADVANCED)' })
   async updateLevel(@Param('id') id: string, @Body() dto: UpdateLevelDto) {
     return this.adminService.updateStudentLevel(id, dto);
@@ -71,5 +70,18 @@ export class AdminController {
   @UseInterceptors(FileFieldsInterceptor([{ name: 'certificate', maxCount: 1 }]))
   async uploadCertificate(@Param('enrollmentId') enrollmentId: string, @UploadedFiles() files: any) {
     return this.adminService.uploadCertificate(enrollmentId, files);
+  }
+
+  @Post('bulk-email')
+  @ApiOperation({ summary: 'Send an email to all active students' })
+  async sendBulkEmail(@Body() dto: SendBulkEmailDto) {
+    return this.emailService.sendBulkEmail(dto.subject, dto.message);
+  }
+
+  @Get('profile')
+  @ApiOperation({ summary: 'Get admin profile' })
+  async getProfile(@CurrentUser() user: any) {
+    const { password, ...profile } = user;
+    return profile;
   }
 }

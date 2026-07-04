@@ -69,4 +69,14 @@ export class StudentsService {
       orderBy: { dayNumber: 'asc' },
     });
   }
+    async getMyCertificate(enrollmentId: string, userId: string) {
+    const enrollment = await this.prisma.enrollment.findFirst({
+      where: { id: enrollmentId, userId },
+    });
+    if (!enrollment) throw new NotFoundException('Enrollment not found');
+
+    return this.prisma.certificate.findUnique({
+      where: { enrollmentId },
+    });
+  }
 }
