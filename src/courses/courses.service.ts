@@ -24,16 +24,16 @@ export class CoursesService {
     private supabase: SupabaseService,
   ) {}
 
-      async createCourse(dto: CreateCourseDto, files: any) {
+  async createCourse(dto: CreateCourseDto, files: any) {
     let imageUrl: string | undefined;
     let videoUrl: string | undefined;
     let instructorImage: string | undefined;
-    let curriculumDocumentUrl: string | undefined; // ADD
+    let curriculumDocumentUrl: string | undefined;
 
     if (files.image?.[0]) imageUrl = await this.supabase.uploadFile(files.image[0], 'courses');
     if (files.video?.[0]) videoUrl = await this.supabase.uploadFile(files.video[0], 'courses');
     if (files.instructorImage?.[0]) instructorImage = await this.supabase.uploadFile(files.instructorImage[0], 'instructors');
-    if (files.curriculumDocument?.[0]) curriculumDocumentUrl = await this.supabase.uploadFile(files.curriculumDocument[0], 'curriculums'); // ADD
+    if (files.curriculumDocument?.[0]) curriculumDocumentUrl = await this.supabase.uploadFile(files.curriculumDocument[0], 'curriculums');
 
     return this.prisma.mentorshipCourse.create({
       data: {
@@ -47,7 +47,7 @@ export class CoursesService {
         imageUrl,
         videoUrl,
         instructorImage,
-        curriculumDocumentUrl, // ADD
+        curriculumDocumentUrl,
       },
     });
   }
@@ -58,10 +58,12 @@ export class CoursesService {
     let imageUrl = course.imageUrl;
     let videoUrl = course.videoUrl;
     let instructorImage = course.instructorImage;
+    let curriculumDocumentUrl = course.curriculumDocumentUrl;
 
     if (files.image?.[0]) imageUrl = await this.supabase.uploadFile(files.image[0], 'courses');
     if (files.video?.[0]) videoUrl = await this.supabase.uploadFile(files.video[0], 'courses');
     if (files.instructorImage?.[0]) instructorImage = await this.supabase.uploadFile(files.instructorImage[0], 'instructors');
+    if (files.curriculumDocument?.[0]) curriculumDocumentUrl = await this.supabase.uploadFile(files.curriculumDocument[0], 'curriculums');
 
     return this.prisma.mentorshipCourse.update({
       where: { id: courseId },
@@ -72,10 +74,10 @@ export class CoursesService {
         ...(dto.requirements !== undefined && { requirements: dto.requirements }),
         ...(dto.instructorName && { instructorName: dto.instructorName }),
         ...(dto.instructorBio !== undefined && { instructorBio: dto.instructorBio }),
-        ...(dto.totalDays !== undefined && { totalDays: dto.totalDays ? parseInt(dto.totalDays, 10) : null }),
         imageUrl,
         videoUrl,
         instructorImage,
+        curriculumDocumentUrl,
       },
     });
   }
@@ -88,19 +90,24 @@ export class CoursesService {
     });
   }
 
-  async addSubCategory(courseId: string, dto: AddSubCategoryDto) {
+  async addSubCategory(courseId: string, dto: AddSubCategoryDto, files: any) {
     const course = await this.prisma.mentorshipCourse.findUnique({ where: { id: courseId } });
     if (!course) throw new BadRequestException('Course not found');
     if (course.type !== 'TRACK') throw new BadRequestException('Only TRACK courses can have sub-categories');
 
-    return this.prisma.courseSubCategory.create({
-      data: {
-        courseId,
+    let curriculumDocumentUrl: string | undefined;
+    if (files.curriculumDocument?.[0]) {
+      curriculumDocumentUrl = await this.supabase.uploadFile(files.curriculumDocument[0], 'curriculums');
+    }
+
+    return this.prisma.courseSubCategory.create({ 
+      data: { 
         name: dto.name,
         order: dto.order,
-        duration: dto.durationDays,
-        curriculumDocumentUrl: dto.curriculumDocument,
-      },
+        durationDays: dto.durationDays,
+        courseId,
+        curriculumDocumentUrl,
+      } 
     });
   }
 
@@ -173,6 +180,7 @@ export class CoursesService {
     const access_token = this.jwt.sign(payload);
 
     const admin = await this.prisma.user.findFirst({ where: { role: 'ADMIN' } });
+    
     const hasCurriculum = await this.prisma.dayContent.count({
       where: {
         courseId: course.id,

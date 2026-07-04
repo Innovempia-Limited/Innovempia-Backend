@@ -8,11 +8,11 @@ export class AddSubCategoryDto {
   @IsNotEmpty()
   name!: string;
 
-  @ApiProperty({ example: 1 })
+  @ApiProperty({ example: 1, description: 'Order of the sub-category (1 comes first)' })
   @IsInt()
   order!: number;
 
-  @ApiProperty({ example: 15 })
+  @ApiProperty({ example: 15, description: 'How many days this sub-category takes' })
   @IsInt()
   @IsNotEmpty()
   durationDays!: number;

@@ -48,7 +48,7 @@ export class CoursesController {
   @ApiBearerAuth()
   @ApiConsumes('multipart/form-data')
   @ApiOperation({ summary: 'Create a new mentorship course (with media)' })
-   @ApiBody({
+  @ApiBody({
     schema: {
       type: 'object',
       properties: {
@@ -62,6 +62,7 @@ export class CoursesController {
         image: { type: 'string', format: 'binary', description: 'Course cover image' },
         video: { type: 'string', format: 'binary', description: 'Course promo video' },
         instructorImage: { type: 'string', format: 'binary', description: 'Instructor photo' },
+        curriculumDocument: { type: 'string', format: 'binary', description: 'Course curriculum PDF' },
       },
     },
   })
@@ -73,10 +74,7 @@ export class CoursesController {
       { name: 'curriculumDocument', maxCount: 1 },
     ]),
   )
-  async createCourse(
-    @Body() dto: CreateCourseDto,
-    @UploadedFiles() files: any,
-  ) {
+  async createCourse(@Body() dto: CreateCourseDto, @UploadedFiles() files: any) {
     return this.coursesService.createCourse(dto, files);
   }
 
@@ -99,6 +97,7 @@ export class CoursesController {
         image: { type: 'string', format: 'binary' },
         video: { type: 'string', format: 'binary' },
         instructorImage: { type: 'string', format: 'binary' },
+        curriculumDocument: { type: 'string', format: 'binary' },
       },
     },
   })
@@ -110,11 +109,7 @@ export class CoursesController {
       { name: 'curriculumDocument', maxCount: 1 },
     ]),
   )
-  async updateCourse(
-    @Param('id') id: string,
-    @Body() dto: UpdateCourseDto,
-    @UploadedFiles() files: any,
-  ) {
+  async updateCourse(@Param('id') id: string, @Body() dto: UpdateCourseDto, @UploadedFiles() files: any) {
     return this.coursesService.updateCourse(id, dto, files);
   }
 
@@ -132,10 +127,22 @@ export class CoursesController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   @ApiBearerAuth()
+  @ApiConsumes('multipart/form-data')
   @ApiOperation({ summary: 'Add a sub-category to a TRACK' })
-  @ApiResponse({ status: 201, description: 'Sub-category added' })
-  async addSubCategory(@Param('id') id: string, @Body() dto: AddSubCategoryDto) {
-    return this.coursesService.addSubCategory(id, dto);
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        name: { type: 'string', example: 'HTML Basics' },
+        order: { type: 'number', example: 1 },
+        durationDays: { type: 'number', example: 15 },
+        curriculumDocument: { type: 'string', format: 'binary', description: 'Sub curriculum PDF' },
+      },
+    },
+  })
+  @UseInterceptors(FileFieldsInterceptor([{ name: 'curriculumDocument', maxCount: 1 }]))
+  async addSubCategory(@Param('id') id: string, @Body() dto: AddSubCategoryDto, @UploadedFiles() files: any) {
+    return this.coursesService.addSubCategory(id, dto, files);
   }
 
   @Put('admin/sub-categories/:subId')

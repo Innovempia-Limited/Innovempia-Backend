@@ -1,4 +1,4 @@
-import { Controller, Get, Param, UseGuards, Post } from '@nestjs/common';
+import { Controller, Get, Post, Param, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
 
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
@@ -30,13 +30,6 @@ export class AdminController {
     return this.adminService.getStudentById(id);
   }
 
-  @Get('profile')
-  @ApiOperation({ summary: 'Get admin profile' })
-  async getProfile(@CurrentUser() user: any) {
-    const { password, ...profile } = user;
-    return profile;
-  }
-
   @Post('students/:id/suspend')
   @ApiOperation({ summary: 'Suspend a student (blocks login and actions)' })
   async suspendStudent(@Param('id') id: string) {
@@ -47,5 +40,12 @@ export class AdminController {
   @ApiOperation({ summary: 'Unsuspend a student' })
   async unsuspendStudent(@Param('id') id: string) {
     return this.adminService.unsuspendStudent(id);
+  }
+
+  @Get('profile')
+  @ApiOperation({ summary: 'Get admin profile' })
+  async getProfile(@CurrentUser() user: any) {
+    const { password, ...profile } = user;
+    return profile;
   }
 }

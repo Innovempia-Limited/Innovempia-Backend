@@ -50,38 +50,38 @@ model User {
 }
 
 model MentorshipCourse {
-  id                String   @id @default(uuid())
-  title             String
-  type              CourseType
-  description       String   @default("")
-  curriculumDocumentUrl String? 
-  imageUrl          String?
-  videoUrl          String?
-  requirements      String   @default("")
-  instructorName    String
-  instructorBio     String   @default("")
-  instructorImage   String?
-  totalDays         Int?     
-  isActive          Boolean  @default(true)
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  id                    String   @id @default(uuid())
+  title                 String
+  type                  CourseType
+  description           String   @default("")
+  totalDays             Int?
+  curriculumDocumentUrl String?
+  imageUrl              String?
+  videoUrl              String?
+  requirements          String   @default("")
+  instructorName        String
+  instructorBio         String   @default("")
+  instructorImage       String?
+  isActive              Boolean  @default(true)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
 
   subCategories     CourseSubCategory[]
   enrollments       Enrollment[]
   dayContents       DayContent[]
 
-
   @@map("mentorship_courses")
 }
 
 model CourseSubCategory {
-  id                String   @id @default(uuid())
-  name              String
-  order             Int
-  courseId          String
-  duration          Int    
-  course            MentorshipCourse @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  id                    String   @id @default(uuid())
+  name                  String
+  order                 Int
+  durationDays          Int
   curriculumDocumentUrl String?
+  courseId              String
+  course                MentorshipCourse @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
   enrollments       Enrollment[]
   dayContents       DayContent[]
 
@@ -102,7 +102,8 @@ model Enrollment {
   user                User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   course              MentorshipCourse @relation(fields: [courseId], references: [id], onDelete: Cascade)
   currentSubCategory  CourseSubCategory? @relation(fields: [currentSubCategoryId], references: [id])
-  submissions          DaySubmission[]   // <--- ADD THIS
+  submissions         DaySubmission[]
+
   @@unique([userId, courseId])
   @@map("enrollments")
 }
@@ -145,7 +146,7 @@ model DayContent {
   materialFileUrl     String?
   projectDescription  String   @default("")
   projectRequirements String   @default("")
-  submissionMethod    String   @default("GITHUB_LINK") // GITHUB_LINK, PASTED_CODE, FILE_UPLOAD, MIXED
+  submissionMethod    String   @default("GITHUB_LINK")
   isActive            Boolean  @default(true)
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
@@ -153,6 +154,7 @@ model DayContent {
   @@unique([courseId, subCategoryId, level, dayNumber])
   @@map("day_contents")
 }
+
 model DaySubmission {
   id                   String    @id @default(uuid())
   enrollmentId         String
@@ -160,7 +162,7 @@ model DaySubmission {
   dayNumber            Int
   submissionContent    String    @default("")
   submissionFileUrl    String?
-  status               String    @default("PENDING") // PENDING, SUCCESS, NEEDS_CORRECTION
+  status               String    @default("PENDING")
   quizScore            Float?
   projectScore         Float?
   overallScore         Float?

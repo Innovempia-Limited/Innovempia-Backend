@@ -13,15 +13,10 @@ export class CreateCourseDto {
   @IsNotEmpty()
   type!: string;
 
-  @ApiPropertyOptional({ example: '90', description: 'Total duration in days (Optional for tracks, required for specific languages)' })
+  @ApiPropertyOptional({ example: '90', description: 'Total duration in days' })
   @IsString()
   @IsOptional()
   totalDays?: string;
-
-  @ApiPropertyOptional({ type: 'string', format: 'binary', description: 'Course curriculum document (PDF/Doc)' })
-  @IsOptional()
-  @IsString()
-  curriculumDocument?: string;
 
   @ApiPropertyOptional({ example: 'Learn HTML, CSS, and JavaScript from scratch' })
   @IsString()
@@ -57,4 +52,9 @@ export class CreateCourseDto {
   @IsOptional()
   @IsString()
   instructorImage?: string;
+
+  @ApiPropertyOptional({ type: 'string', format: 'binary', description: 'Course curriculum document (PDF/Doc)' })
+  @IsOptional()
+  @IsString()
+  curriculumDocument?: string;
 }
