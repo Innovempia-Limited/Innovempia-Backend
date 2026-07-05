@@ -54,6 +54,13 @@ export class CmsService {
       } 
     });
   }
+  
+  async getTeam() {
+    return this.prisma.teamMember.findMany({ orderBy: { order: 'asc' } });
+  }
+  async deleteTeamMember(id: string) {
+    return this.prisma.teamMember.delete({ where: { id } });
+  }
 
   // PORTFOLIO
   async addProject(data: any, files: any) {
