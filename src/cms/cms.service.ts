@@ -37,16 +37,22 @@ export class CmsService {
   }
 
   // TEAM
-  async addTeamMember(data: any, file: any) {
+   async addTeamMember(data: any, file: any) {
     let imageUrl: string | undefined;
     if (file?.image?.[0]) imageUrl = await this.supabase.uploadFile(file.image[0], 'team');
-    return this.prisma.teamMember.create({ data: { ...data, imageUrl } });
-  }
-  async getTeam() {
-    return this.prisma.teamMember.findMany({ orderBy: { order: 'asc' } });
-  }
-  async deleteTeamMember(id: string) {
-    return this.prisma.teamMember.delete({ where: { id } });
+    
+    return this.prisma.teamMember.create({ 
+      data: { 
+        name: data.name, 
+        position: data.position, 
+        email: data.email, 
+        twitterUrl: data.twitterUrl, 
+        linkedinUrl: data.linkedinUrl, 
+        githubUrl: data.githubUrl, 
+        order: parseInt(data.order, 10) || 0, // Parse string to int
+        imageUrl 
+      } 
+    });
   }
 
   // PORTFOLIO
