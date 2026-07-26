@@ -114,10 +114,39 @@ export class CmsService {
   async getJobs() {
     return this.prisma.jobRole.findMany({ where: { isActive: true }, orderBy: { createdAt: 'desc' } });
   }
+  async deleteJob(id: string) {
+    await this.prisma.jobRole.findFirstOrThrow({ where: { id } });
+    return this.prisma.jobRole.delete({ where: { id } });
+  }
   async applyToJob(jobId: string, data: any, file: any) {
+    // Check if user already applied (by userId if logged in, or by email if guest)
+    const existingApplication = await this.prisma.jobApplication.findFirst({
+      where: {
+        jobId,
+        OR: [
+          ...(data.userId ? [{ userId: data.userId }] : []),
+          { email: data.email }
+        ]
+      }
+    });
+
+    if (existingApplication) {
+      throw new BadRequestException('You have already applied for this job.');
+    }
+
     let resumeUrl: string | undefined;
     if (file?.resume?.[0]) resumeUrl = await this.supabase.uploadFile(file.resume[0], 'resumes');
-    return this.prisma.jobApplication.create({ data: { jobId, fullName: data.fullName, email: data.email, phone: data.phone, resumeUrl, userId: data.userId || null } });
+    
+    return this.prisma.jobApplication.create({ 
+      data: { 
+        jobId, 
+        fullName: data.fullName, 
+        email: data.email, 
+        phone: data.phone, 
+        resumeUrl, 
+        userId: data.userId || null 
+      } 
+    });
   }
   async getJobApplications(jobId: string) {
     return this.prisma.jobApplication.findMany({ where: { jobId }, orderBy: { createdAt: 'desc' } });
@@ -125,15 +154,31 @@ export class CmsService {
 
   // CUSTOM PROJECTS
   async requestCustomProject(data: any, files: any) {
-    const req = await this.prisma.customProjectRequest.create({ data: { name: data.name, email: data.email, phone: data.phone, description: data.description, budget: data.budget } });
+    const req = await this.prisma.customProjectRequest.create({ 
+      data: { 
+        name: data.name, 
+        email: data.email, 
+        phone: data.phone, 
+        description: data.description, 
+        budget: data.budget 
+      } 
+    });
     
-    if (files?.images) {
-      for (const img of files.images) {
+    // FilesInterceptor('images') passes the array directly, not inside an 'images' property
+    if (files && files.length > 0) {
+      for (const img of files) {
         const url = await this.supabase.uploadFile(img, 'custom-projects');
         await this.prisma.customProjectImage.create({ data: { url, requestId: req.id } });
       }
     }
-    return req;
+    
+    // Return the request WITH the images included
+    const finalRequest = await this.prisma.customProjectRequest.findUnique({
+      where: { id: req.id },
+      include: { images: true },
+    });
+
+    return finalRequest;
   }
   async getCustomRequests() {
     return this.prisma.customProjectRequest.findMany({ include: { images: true }, orderBy: { createdAt: 'desc' } });

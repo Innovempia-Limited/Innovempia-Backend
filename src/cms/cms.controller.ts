@@ -233,6 +233,13 @@ export class CmsController {
   })
   addJob(@Body() data: any) { return this.cmsService.addJob(data); }
 
+  @Delete('admin/jobs/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Admin: Delete a job role' })
+  async deleteJob(@Param('id') id: string) { return this.cmsService.deleteJob(id); }
+
   @Get('admin/jobs/:jobId/applications')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
