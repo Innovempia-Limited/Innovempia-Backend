@@ -219,6 +219,18 @@ export class CmsController {
   @Roles('ADMIN')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Admin: Add job role' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        title: { type: 'string', example: 'Senior Backend Developer' },
+        type: { type: 'string', example: 'Remote' },
+        description: { type: 'string', example: 'We need an expert in NestJS and microservices...' },
+        requirements: { type: 'string', example: '5 years experience, Node.js, PostgreSQL' },
+        salaryRange: { type: 'string', example: '150,000 - 250,000 NGN' },
+      },
+    },
+  })
   addJob(@Body() data: any) { return this.cmsService.addJob(data); }
 
   @Get('admin/jobs/:jobId/applications')
