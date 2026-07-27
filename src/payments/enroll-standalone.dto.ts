@@ -21,9 +21,4 @@ export class EnrollStandaloneDto {
   @IsString()
   @IsOptional()
   phone?: string;
-
-  @ApiPropertyOptional({ example: 'https://www.innovempia.com/courses/payment/callback' })
-  @IsString()
-  @IsOptional()
-  callbackUrl?: string;
 }

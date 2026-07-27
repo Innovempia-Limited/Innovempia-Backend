@@ -50,10 +50,8 @@ export class PaymentsService {
       email: user.email,
       amount: amountInKobo,
       metadata: { course_id: courseId, user_id: user.id },
+      callback_url: this.config.get('PAYSTACK_CALLBACK_URL', 'https://www.innovempia.com/courses/payment/callback'),
     };
-    if (data.callbackUrl) {
-      paystackBody.callback_url = data.callbackUrl;
-    }
 
     const res = await fetch('https://api.paystack.co/transaction/initialize', {
       method: 'POST',

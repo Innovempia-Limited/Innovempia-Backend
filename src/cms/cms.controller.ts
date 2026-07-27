@@ -114,7 +114,6 @@ export class CmsController {
         lastName: { type: 'string', example: 'Doe' },
         email: { type: 'string', example: 'john@example.com' },
         phone: { type: 'string', example: '08012345678' },
-        callbackUrl: { type: 'string', example: 'https://www.innovempia.com/courses/payment/callback' },
       },
     },
   })
