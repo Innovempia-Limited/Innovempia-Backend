@@ -1,10 +1,11 @@
-import { Controller, Post, Get, Param, UseGuards } from '@nestjs/common';
+import { Controller, Post, Get, Param, UseGuards, Body } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 import { PaymentsService } from './payments.service';
+import { EnrollStandaloneDto } from './enroll-standalone.dto';
 
 @ApiTags('Payments')
 @Controller('payments')
@@ -15,8 +16,8 @@ export class PaymentsController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Initialize payment for a standalone course' })
-  async initCourse(@CurrentUser('id') userId: string, @Param('courseId') courseId: string) {
-    return this.paymentsService.initializeStandaloneCourse(userId, courseId);
+  async initCourse(@Param('courseId') courseId: string, @Body() dto: EnrollStandaloneDto) {
+    return this.paymentsService.initializeStandaloneCourse(dto, courseId);
   }
 
   @Post('init-subscription')
