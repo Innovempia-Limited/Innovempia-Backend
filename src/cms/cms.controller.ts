@@ -1,7 +1,8 @@
 import { Controller, Post, Get, Put, Delete, Body, Param, Query, UseGuards, UseInterceptors, UploadedFiles } from '@nestjs/common';
 import { FileFieldsInterceptor, FilesInterceptor } from '@nestjs/platform-express';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiConsumes, ApiBody } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiConsumes, ApiBody, ApiResponse } from '@nestjs/swagger';
 
+import { PaymentsService } from '../payments/payments.service';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -14,7 +15,10 @@ import { ContactDto } from './dto/contact.dto';
 @ApiTags('CMS & Public')
 @Controller('cms')
 export class CmsController {
-  constructor(private cmsService: CmsService) {}
+  constructor(
+    private cmsService: CmsService,
+    private paymentsService: PaymentsService, // INJECTED PROPERLY HERE
+  ) {}
 
   // --- PUBLIC ROUTES ---
   @Get('team')
@@ -77,18 +81,54 @@ export class CmsController {
   @ApiBody({
     schema: {
       type: 'object',
+      required: ['name', 'email', 'description'],
       properties: {
         name: { type: 'string' },
         email: { type: 'string' },
         phone: { type: 'string' },
         description: { type: 'string' },
         budget: { type: 'string' },
-        images: { type: 'array', items: { type: 'string', format: 'binary' } }
-      }
-    }
+        images: { 
+          type: 'array', 
+          items: { type: 'string', format: 'binary' },
+          maxItems: 10
+        }
+      },
+    },
   })
   @UseInterceptors(FilesInterceptor('images', 10))
   requestProject(@Body() data: any, @UploadedFiles() files: any) { return this.cmsService.requestCustomProject(data, files); }
+
+  // --- STANDALONE COURSES ENROLLMENT (INSIDE THE CLASS) ---
+  @Post('standalone-courses/:id/enroll')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Student: Pay & Enroll in a standalone course' })
+  @ApiResponse({ status: 201, description: 'Returns Paystack authorization URL' })
+  async enrollCourse(@CurrentUser('id') userId: string, @Param('id') courseId: string) {
+    return this.paymentsService.initializeStandaloneCourse(userId, courseId);
+  }
+
+  @Get('standalone-courses/my-courses')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Student: Get all courses I have paid for' })
+  async getMyCourses(@CurrentUser('id') userId: string) {
+    const { PrismaClient } = require('@prisma/client');
+    const prisma = new PrismaClient();
+    
+    const payments = await prisma.paymentRecord.findMany({
+      where: { 
+        userId, 
+        type: 'STANDALONE_COURSE', 
+        status: 'SUCCESS' 
+      },
+      include: { course: true },
+      orderBy: { createdAt: 'desc' },
+    });
+    
+    return payments.map(p => p.course);
+  }
 
 
   // --- ADMIN ROUTES ---
@@ -218,7 +258,6 @@ export class CmsController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Admin: Delete a blog post (Soft delete)' })
   deleteBlog(@Param('id') id: string) { return this.cmsService.deleteBlog(id); }
-
 
   // --- EVENTS ---
   @Post('admin/events')
