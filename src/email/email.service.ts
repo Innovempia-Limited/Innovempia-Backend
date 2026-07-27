@@ -1,18 +1,42 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Resend } from 'resend';
 
 import { PrismaService } from '../prisma/prisma.service';
 
+interface ResendEmailPayload {
+  from: string;
+  to: string[];
+  subject: string;
+  html: string;
+  bcc?: string[];
+}
+
 @Injectable()
 export class EmailService {
-  private resend: Resend;
-
   constructor(
     private config: ConfigService,
     private prisma: PrismaService,
-  ) {
-    this.resend = new Resend(this.config.get('RESEND_API_KEY'));
+  ) {}
+
+  private async sendResend(payload: ResendEmailPayload): Promise<void> {
+    const apiKey = this.config.get('RESEND_API_KEY');
+    if (!apiKey) {
+      throw new Error('RESEND_API_KEY is not configured');
+    }
+
+    const res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error(`Resend API error ${res.status}: ${errorText}`);
+    }
   }
 
   private buildTemplate(content: string): string {
@@ -78,7 +102,7 @@ export class EmailService {
       </div>
     `;
 
-    await this.resend.emails.send({
+    await this.sendResend({
       from: this.config.get('FROM_EMAIL', 'Innovempia <mail@innovempia.com>'),
       to: [email],
       subject: `Welcome to Innovempia! You're enrolled in ${courseTitle}`,
@@ -105,7 +129,7 @@ export class EmailService {
       </div>
     `;
 
-    await this.resend.emails.send({
+    await this.sendResend({
       from: this.config.get('FROM_EMAIL', 'Innovempia Security <mail@innovempia.com>'),
       to: [email],
       subject: `Your Password Reset OTP: ${otp}`,
@@ -157,7 +181,7 @@ export class EmailService {
       ${warningBlock}
     `;
 
-    await this.resend.emails.send({
+    await this.sendResend({
       from: this.config.get('FROM_EMAIL', 'Innovempia System <mail@innovempia.com>'),
       to: [this.config.get('ADMIN_EMAIL_NOTIFY', 'mail@innovempia.com')],
       subject: `New Enrollment: ${studentName} joined ${courseTitle}`,
@@ -194,7 +218,7 @@ export class EmailService {
       </table>
     `;
 
-    await this.resend.emails.send({
+    await this.sendResend({
       from: this.config.get('FROM_EMAIL', 'Innovempia <mail@innovempia.com>'),
       to: [email],
       subject: `Access Granted: ${courseTitle}`,
@@ -223,7 +247,7 @@ export class EmailService {
       </div>
     `;
 
-    await this.resend.emails.send({
+    await this.sendResend({
       from: this.config.get('FROM_EMAIL', 'Innovempia <mail@innovempia.com>'),
       to: [this.config.get('FROM_EMAIL', 'mail@innovempia.com')],
       bcc: emailList,
