@@ -232,10 +232,20 @@ export class CmsService {
   }
 
   // STANDALONE COURSES
-  async addStandaloneCourse(data: any, file: any) {
+    async addStandaloneCourse(data: any, file: any) {
     let coverUrl: string | undefined;
     if (file?.cover?.[0]) coverUrl = await this.supabase.uploadFile(file.cover[0], 'courses');
-    return this.prisma.standaloneCourse.create({ data: { ...data, coverImageUrl: coverUrl } });
+    
+    return this.prisma.standaloneCourse.create({ 
+      data: { 
+        title: data.title, 
+        description: data.description, 
+        price: parseFloat(data.price) || 0, // PARSE STRING TO FLOAT
+        content: data.content, 
+        whatsappGroupLink: data.whatsappGroupLink, 
+        coverImageUrl: coverUrl 
+      } 
+    });
   }
   async getStandaloneCourses() {
     return this.prisma.standaloneCourse.findMany({ where: { isActive: true }, orderBy: { createdAt: 'desc' } });
