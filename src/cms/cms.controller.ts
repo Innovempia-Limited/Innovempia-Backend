@@ -8,16 +8,19 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 
+import { PrismaService } from '../prisma/prisma.service';
+
 import { CmsService } from './cms.service';
 
 import { ContactDto } from './dto/contact.dto';
-
+import {EnrollStandaloneDto} from '../payments/enroll-standalone.dto'
 @ApiTags('CMS & Public')
 @Controller('cms')
 export class CmsController {
   constructor(
     private cmsService: CmsService,
-    private paymentsService: PaymentsService, // INJECTED PROPERLY HERE
+    private paymentsService: PaymentsService,
+    private prisma: PrismaService,
   ) {}
 
   // --- PUBLIC ROUTES ---
@@ -99,14 +102,23 @@ export class CmsController {
   @UseInterceptors(FilesInterceptor('images', 10))
   requestProject(@Body() data: any, @UploadedFiles() files: any) { return this.cmsService.requestCustomProject(data, files); }
 
-  // --- STANDALONE COURSES ENROLLMENT (INSIDE THE CLASS) ---
+  // --- STANDALONE COURSES ENROLLMENT ---
   @Post('standalone-courses/:id/enroll')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Student: Pay & Enroll in a standalone course' })
-  @ApiResponse({ status: 201, description: 'Returns Paystack authorization URL' })
-  async enrollCourse(@CurrentUser('id') userId: string, @Param('id') courseId: string) {
-    return this.paymentsService.initializeStandaloneCourse(userId, courseId);
+  @ApiOperation({ summary: 'Public: Pay & Enroll (Creates account if none exists)' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      required: ['firstName', 'lastName', 'email'],
+      properties: {
+        firstName: { type: 'string', example: 'John' },
+        lastName: { type: 'string', example: 'Doe' },
+        email: { type: 'string', example: 'john@example.com' },
+        phone: { type: 'string', example: '08012345678' },
+      },
+    },
+  })
+  async enrollCourse(@Param('id') courseId: string, @Body() dto: EnrollStandaloneDto) { 
+    return this.paymentsService.initializeStandaloneCourse(dto, courseId); 
   }
 
   @Get('standalone-courses/my-courses')
@@ -114,19 +126,11 @@ export class CmsController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Student: Get all courses I have paid for' })
   async getMyCourses(@CurrentUser('id') userId: string) {
-    const { PrismaClient } = require('@prisma/client');
-    const prisma = new PrismaClient();
-    
-    const payments = await prisma.paymentRecord.findMany({
-      where: { 
-        userId, 
-        type: 'STANDALONE_COURSE', 
-        status: 'SUCCESS' 
-      },
+    const payments = await this.prisma.paymentRecord.findMany({
+      where: { userId, type: 'STANDALONE_COURSE', status: 'SUCCESS' },
       include: { course: true },
       orderBy: { createdAt: 'desc' },
     });
-    
     return payments.map(p => p.course);
   }
 

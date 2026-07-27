@@ -377,6 +377,8 @@ model StandaloneCourse {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
+  paymentRecords    PaymentRecord[]
+
   @@map("standalone_courses")
 }
 
@@ -391,6 +393,8 @@ model PaymentRecord {
   paystackSubscriptionCode String?
   endDate                DateTime?
   isActive               Boolean      @default(true)
+  standaloneCourseId     String?
+  course                 StandaloneCourse? @relation(fields: [standaloneCourseId], references: [id])
   createdAt              DateTime     @default(now())
   updatedAt              DateTime     @updatedAt
 

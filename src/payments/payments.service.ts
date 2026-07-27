@@ -1,14 +1,18 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
 
 import { EmailService } from '../email/email.service';
 import { PrismaService } from '../prisma/prisma.service';
+
+import { EnrollStandaloneDto } from './enroll-standalone.dto'; // <-- THIS WAS MISSING
 
 @Injectable()
 export class PaymentsService {
   constructor(
     private config: ConfigService,
     private prisma: PrismaService,
+    private jwt: JwtService,
     private emailService: EmailService,
   ) {}
 
@@ -19,12 +23,27 @@ export class PaymentsService {
     };
   }
 
-  async initializeStandaloneCourse(userId: string, courseId: string) {
-    const course = await this.prisma.standaloneCourse.findFirst({ where: { id: courseId } });
+  async initializeStandaloneCourse(data: EnrollStandaloneDto, courseId: string) {
+    const course = await this.prisma.standaloneCourse.findFirst({ where: { id: courseId, isActive: true } });
     if (!course) throw new BadRequestException('Course not found');
 
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user) throw new BadRequestException('User not found');
+    // Check if user exists, if not, create them automatically
+    let user = await this.prisma.user.findUnique({ where: { email: data.email } });
+
+    if (!user) {
+      const bcrypt = require('bcryptjs');
+      const hashed = bcrypt.hashSync('Password123!', 10);
+      user = await this.prisma.user.create({
+        data: {
+          email: data.email,
+          password: hashed,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          phone: data.phone,
+          role: 'STUDENT',
+        },
+      });
+    }
 
     const amountInKobo = Math.round(course.price * 100);
 
@@ -34,26 +53,46 @@ export class PaymentsService {
       body: JSON.stringify({
         email: user.email,
         amount: amountInKobo,
-        metadata: { course_id: courseId, user_id: userId },
+        metadata: { course_id: courseId, user_id: user.id },
       }),
     });
 
-    const data = await res.json() as any;
-    if (!data.status) throw new BadRequestException('Could not initialize payment');
+    const paystackData = await res.json() as any;
+    if (!paystackData.status) throw new BadRequestException('Could not initialize payment');
 
     await this.prisma.paymentRecord.create({
       data: {
-        userId,
+        userId: user.id,
         type: 'STANDALONE_COURSE',
         amount: course.price,
         status: 'PENDING',
-        paystackReference: data.data.reference,
+        paystackReference: paystackData.data.reference,
+        standaloneCourseId: courseId,
       },
     });
 
-    return { authorization_url: data.data.authorization_url, reference: data.data.reference };
-  }
+    // Generate JWT for the new/existing user
+    const payload = { sub: user.id, email: user.email, role: user.role };
+    const token = this.jwt.sign(payload);
 
+    return { 
+      access_token: token,
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        phone: user.phone,
+        role: user.role,
+      },
+      payment: {
+        authorization_url: paystackData.data.authorization_url, 
+        reference: paystackData.data.reference,
+        amount: course.price 
+      }
+    };
+  }
+  
   async initializeSubscription(userId: string) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new BadRequestException('User not found');
@@ -120,7 +159,17 @@ export class PaymentsService {
       }
     }
 
-    return updatedPayment;
+    return { 
+      payment, 
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        phone: user.phone,
+        role: user.role,
+      }
+    };
   }
 
   async cancelSubscription(userId: string) {
