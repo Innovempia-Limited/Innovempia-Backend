@@ -1,27 +1,24 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiPropertyOptional } from '@nestjs/swagger';
 
-import { IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsEnum, IsOptional, IsString } from 'class-validator';
 
 export class GradeDayDto {
-  @ApiProperty({ example: 10.0 })
-  @IsNumber()
-  @IsNotEmpty()
+  @ApiPropertyOptional({ example: 10.0 })
+  @IsOptional()
   quizScore?: number;
 
-  @ApiProperty({ example: 8.5 })
-  @IsNumber()
-  @IsNotEmpty()
+  @ApiPropertyOptional({ example: 8.5 })
+  @IsOptional()
   projectScore?: number;
 
-  @ApiProperty({ example: 9.2 })
-  @IsNumber()
-  @IsNotEmpty()
+  @ApiPropertyOptional({ example: 9.2 })
+  @IsOptional()
   overallScore?: number;
 
-  @ApiProperty({ enum: ['SUCCESS', 'NEEDS_CORRECTION'], example: 'SUCCESS' })
-  @IsString()
-  @IsNotEmpty()
-  status!: string;
+  @ApiPropertyOptional({ enum: ['SUCCESS', 'NEEDS_CORRECTION'], example: 'SUCCESS' })
+  @IsEnum(['SUCCESS', 'NEEDS_CORRECTION'])
+  @IsOptional()
+  status?: string;
 
   @ApiPropertyOptional({ type: 'string', format: 'binary', description: 'Detailed feedback document (PDF/Doc)' })
   @IsOptional()

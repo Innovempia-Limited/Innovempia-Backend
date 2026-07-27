@@ -64,9 +64,9 @@ export class SubmissionsService {
     const graded = await this.prisma.daySubmission.update({
       where: { id: submissionId },
       data: {
-        quizScore: dto.quizScore,
-        projectScore: dto.projectScore,
-        overallScore: dto.overallScore,
+        quizScore: dto.quizScore !== undefined ? parseFloat(dto.quizScore) : undefined,
+        projectScore: dto.projectScore !== undefined ? parseFloat(dto.projectScore) : undefined,
+        overallScore: dto.overallScore !== undefined ? parseFloat(dto.overallScore) : undefined,
         status: dto.status,
         feedbackDocumentUrl,
         gradedAt: new Date(),
