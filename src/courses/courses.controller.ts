@@ -36,6 +36,7 @@ export class CoursesController {
 
   @Post('register')
   @ApiOperation({ summary: 'Register as a student and enroll in a course' })
+  @ApiBody({ type: RegisterCourseDto })
   @ApiResponse({ status: 201, description: 'Registration successful' })
   @ApiResponse({ status: 409, description: 'Already enrolled' })
   async registerCourse(@Body() dto: RegisterCourseDto) {
