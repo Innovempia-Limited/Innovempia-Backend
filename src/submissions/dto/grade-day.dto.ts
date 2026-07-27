@@ -3,17 +3,20 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEnum, IsOptional, IsString } from 'class-validator';
 
 export class GradeDayDto {
-  @ApiPropertyOptional({ example: 10.0 })
+  @ApiPropertyOptional({ example: '10.0' })
   @IsOptional()
-  quizScore?: number;
+  @IsString()
+  quizScore?: string;
 
-  @ApiPropertyOptional({ example: 8.5 })
+  @ApiPropertyOptional({ example: '8.5' })
   @IsOptional()
-  projectScore?: number;
+  @IsString()
+  projectScore?: string;
 
-  @ApiPropertyOptional({ example: 9.2 })
+  @ApiPropertyOptional({ example: '9.2' })
   @IsOptional()
-  overallScore?: number;
+  @IsString()
+  overallScore?: string;
 
   @ApiPropertyOptional({ enum: ['SUCCESS', 'NEEDS_CORRECTION'], example: 'SUCCESS' })
   @IsEnum(['SUCCESS', 'NEEDS_CORRECTION'])
