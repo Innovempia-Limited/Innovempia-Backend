@@ -6,17 +6,17 @@ export class GradeDayDto {
   @ApiProperty({ example: 10.0 })
   @IsNumber()
   @IsNotEmpty()
-  quizScore!: number;
+  quizScore?: number;
 
   @ApiProperty({ example: 8.5 })
   @IsNumber()
   @IsNotEmpty()
-  projectScore!: number;
+  projectScore?: number;
 
   @ApiProperty({ example: 9.2 })
   @IsNumber()
   @IsNotEmpty()
-  overallScore!: number;
+  overallScore?: number;
 
   @ApiProperty({ enum: ['SUCCESS', 'NEEDS_CORRECTION'], example: 'SUCCESS' })
   @IsString()
