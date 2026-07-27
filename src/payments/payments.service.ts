@@ -27,7 +27,6 @@ export class PaymentsService {
     const course = await this.prisma.standaloneCourse.findFirst({ where: { id: courseId, isActive: true } });
     if (!course) throw new BadRequestException('Course not found');
 
-    // Check if user exists, if not, create them automatically
     let user = await this.prisma.user.findUnique({ where: { email: data.email } });
 
     if (!user) {
@@ -47,14 +46,19 @@ export class PaymentsService {
 
     const amountInKobo = Math.round(course.price * 100);
 
+    const paystackBody: any = {
+      email: user.email,
+      amount: amountInKobo,
+      metadata: { course_id: courseId, user_id: user.id },
+    };
+    if (data.callbackUrl) {
+      paystackBody.callback_url = data.callbackUrl;
+    }
+
     const res = await fetch('https://api.paystack.co/transaction/initialize', {
       method: 'POST',
       headers: this.getHeaders(),
-      body: JSON.stringify({
-        email: user.email,
-        amount: amountInKobo,
-        metadata: { course_id: courseId, user_id: user.id },
-      }),
+      body: JSON.stringify(paystackBody),
     });
 
     const paystackData = await res.json() as any;
