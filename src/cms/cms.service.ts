@@ -83,12 +83,36 @@ export class CmsService {
     return this.prisma.portfolioProject.findMany({ where: { isActive: true }, include: { images: true }, orderBy: { createdAt: 'desc' } });
   }
 
-  // BLOG
+   // BLOG
   async addBlog(data: any, file: any) {
     let coverUrl: string | undefined;
     if (file?.cover?.[0]) coverUrl = await this.supabase.uploadFile(file.cover[0], 'blog');
     const slug = data.title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
     return this.prisma.blogPost.create({ data: { ...data, slug, coverImageUrl: coverUrl } });
+  }
+  async updateBlog(id: string, data: any, file: any) {
+    const blog = await this.prisma.blogPost.findFirstOrThrow({ where: { id } });
+    
+    let coverUrl = blog.coverImageUrl;
+    if (file?.cover?.[0]) coverUrl = await this.supabase.uploadFile(file.cover[0], 'blog');
+    
+    // Re-generate slug if title is being updated
+    const slug = data.title ? data.title.toLowerCase().replace(/[^a-z0-9]+/g, '-') : blog.slug;
+
+    return this.prisma.blogPost.update({
+      where: { id },
+      data: { 
+        title: data.title, 
+        slug, 
+        content: data.content, 
+        authorName: data.authorName, 
+        coverImageUrl: coverUrl 
+      },
+    });
+  }
+  async deleteBlog(id: string) {
+    await this.prisma.blogPost.findFirstOrThrow({ where: { id } });
+    return this.prisma.blogPost.update({ where: { id }, data: { isActive: false } });
   }
   async getBlogs() {
     return this.prisma.blogPost.findMany({ where: { isActive: true }, orderBy: { createdAt: 'desc' } });
@@ -102,6 +126,29 @@ export class CmsService {
     let coverUrl: string | undefined;
     if (file?.cover?.[0]) coverUrl = await this.supabase.uploadFile(file.cover[0], 'events');
     return this.prisma.event.create({ data: { ...data, coverImageUrl: coverUrl } });
+  }
+  async updateEvent(id: string, data: any, file: any) {
+    const event = await this.prisma.event.findFirstOrThrow({ where: { id } });
+    
+    let coverUrl = event.coverImageUrl;
+    if (file?.cover?.[0]) coverUrl = await this.supabase.uploadFile(file.cover[0], 'events');
+
+    return this.prisma.event.update({
+      where: { id },
+      data: { 
+        title: data.title, 
+        description: data.description, 
+        date: data.date, 
+        time: data.time, 
+        location: data.location, 
+        registrationLink: data.registrationLink, 
+        coverImageUrl: coverUrl 
+      },
+    });
+  }
+  async deleteEvent(id: string) {
+    await this.prisma.event.findFirstOrThrow({ where: { id } });
+    return this.prisma.event.update({ where: { id }, data: { isActive: false } });
   }
   async getEvents() {
     return this.prisma.event.findMany({ where: { isActive: true }, orderBy: { date: 'asc' } });

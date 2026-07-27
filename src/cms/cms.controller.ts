@@ -171,6 +171,7 @@ export class CmsController {
   @UseInterceptors(FileFieldsInterceptor([{ name: 'background', maxCount: 1 }, { name: 'images', maxCount: 10 }]))
   addProject(@Body() data: any, @UploadedFiles() files: any) { return this.cmsService.addProject(data, files); }
 
+  // --- BLOGS ---
   @Post('admin/blogs')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
@@ -185,12 +186,41 @@ export class CmsController {
         content: { type: 'string' },
         authorName: { type: 'string' },
         cover: { type: 'string', format: 'binary' }
-      }
-    }
+      },
+    },
   })
   @UseInterceptors(FileFieldsInterceptor([{ name: 'cover', maxCount: 1 }]))
   addBlog(@Body() data: any, @UploadedFiles() files: any) { return this.cmsService.addBlog(data, files); }
 
+  @Put('admin/blogs/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiBearerAuth()
+  @ApiConsumes('multipart/form-data')
+  @ApiOperation({ summary: 'Admin: Edit a blog post' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        title: { type: 'string' },
+        content: { type: 'string' },
+        authorName: { type: 'string' },
+        cover: { type: 'string', format: 'binary' }
+      },
+    },
+  })
+  @UseInterceptors(FileFieldsInterceptor([{ name: 'cover', maxCount: 1 }]))
+  updateBlog(@Param('id') id: string, @Body() data: any, @UploadedFiles() files: any) { return this.cmsService.updateBlog(id, data, files); }
+
+  @Delete('admin/blogs/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Admin: Delete a blog post (Soft delete)' })
+  deleteBlog(@Param('id') id: string) { return this.cmsService.deleteBlog(id); }
+
+
+  // --- EVENTS ---
   @Post('admin/events')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
@@ -208,11 +238,41 @@ export class CmsController {
         location: { type: 'string' },
         registrationLink: { type: 'string' },
         cover: { type: 'string', format: 'binary' }
-      }
-    }
+      },
+    },
   })
   @UseInterceptors(FileFieldsInterceptor([{ name: 'cover', maxCount: 1 }]))
   addEvent(@Body() data: any, @UploadedFiles() files: any) { return this.cmsService.addEvent(data, files); }
+
+  @Put('admin/events/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiBearerAuth()
+  @ApiConsumes('multipart/form-data')
+  @ApiOperation({ summary: 'Admin: Edit an event' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        title: { type: 'string' },
+        description: { type: 'string' },
+        date: { type: 'string' },
+        time: { type: 'string' },
+        location: { type: 'string' },
+        registrationLink: { type: 'string' },
+        cover: { type: 'string', format: 'binary' }
+      },
+    },
+  })
+  @UseInterceptors(FileFieldsInterceptor([{ name: 'cover', maxCount: 1 }]))
+  updateEvent(@Param('id') id: string, @Body() data: any, @UploadedFiles() files: any) { return this.cmsService.updateEvent(id, data, files); }
+
+  @Delete('admin/events/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Admin: Delete an event (Soft delete)' })
+  deleteEvent(@Param('id') id: string) { return this.cmsService.deleteEvent(id); }
 
   @Post('admin/jobs')
   @UseGuards(JwtAuthGuard, RolesGuard)
