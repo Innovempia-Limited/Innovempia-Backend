@@ -402,6 +402,7 @@ model StandaloneCourse {
   content           String   @default("") // HTML content
   whatsappGroupLink String?
   deadline          DateTime?
+  startDate         DateTime?
   level             Level    @default(BEGINNER)
   blueprint         String   @default("")
   classDays         String?

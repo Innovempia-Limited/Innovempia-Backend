@@ -189,7 +189,7 @@ export class EmailService {
     });
   }
 
-  async sendCoursePurchaseEmail(email: string, firstName: string, courseTitle: string, whatsappLink: string | null, classDays?: string | null, classTime?: string | null, venue?: string | null) {
+  async sendCoursePurchaseEmail(email: string, firstName: string, courseTitle: string, whatsappLink: string | null, startDate?: string | null, classDays?: string | null, classTime?: string | null, venue?: string | null) {
     const whatsappBlock = whatsappLink
       ? `
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin: 28px 0;">
@@ -202,7 +202,7 @@ export class EmailService {
       `
       : '';
 
-    const hasSchedule = classDays || classTime || venue;
+    const hasSchedule = startDate || classDays || classTime || venue;
 
     const scheduleBlock = hasSchedule
       ? `
@@ -212,6 +212,13 @@ export class EmailService {
               <p style="margin: 0; color: #92400e; font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">📅 Class Schedule</p>
             </td>
           </tr>
+          ${startDate ? `
+          <tr>
+            <td style="padding: 14px 24px; border-bottom: 1px solid #e5e7eb;">
+              <p style="margin: 0; color: #6b7280; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Start Date</p>
+              <p style="margin: 4px 0 0 0; color: #111827; font-size: 15px; font-weight: 600;">${new Date(startDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+            </td>
+          </tr>` : ''}
           ${classDays ? `
           <tr>
             <td style="padding: 14px 24px; border-bottom: 1px solid #e5e7eb;">

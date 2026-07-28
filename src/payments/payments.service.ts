@@ -159,7 +159,7 @@ export class PaymentsService {
       
       if (user && course) {
         try {
-          await this.emailService.sendCoursePurchaseEmail(user.email, user.firstName, course.title, course.whatsappGroupLink, course.classDays, course.classTime, course.venue);
+          await this.emailService.sendCoursePurchaseEmail(user.email, user.firstName, course.title, course.whatsappGroupLink, course.startDate?.toISOString(), course.classDays, course.classTime, course.venue);
         } catch (err: any) { console.error('Email failed', err.message); }
       }
     }
