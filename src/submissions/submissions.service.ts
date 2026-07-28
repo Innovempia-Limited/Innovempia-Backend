@@ -137,6 +137,66 @@ export class SubmissionsService {
     return graded;
   }
 
+  async getMyGradeHistory(userId: string) {
+    const submissions = await this.prisma.daySubmission.findMany({
+      where: {
+        enrollment: { userId },
+        status: { in: ['SUCCESS', 'NEEDS_CORRECTION'] },
+      },
+      include: {
+        enrollment: {
+          include: {
+            course: { select: { title: true } },
+          },
+        },
+      },
+      orderBy: { gradedAt: 'desc' },
+    });
+
+    return submissions.map((s) => ({
+      dayNumber: s.dayNumber,
+      courseId: s.enrollment.courseId,
+      courseTitle: s.enrollment.course.title,
+      status: s.status,
+      quizScore: s.quizScore,
+      projectScore: s.projectScore,
+      overallScore: s.overallScore,
+      feedbackDocumentUrl: s.feedbackDocumentUrl,
+      gradedAt: s.gradedAt,
+    }));
+  }
+
+  async getMyMaterials(userId: string) {
+    const submissions = await this.prisma.daySubmission.findMany({
+      where: {
+        enrollment: { userId },
+      },
+      include: {
+        enrollment: {
+          include: {
+            course: { select: { title: true, dayContents: true } },
+          },
+        },
+      },
+      orderBy: { dayNumber: 'asc' },
+    });
+
+    return submissions.map((s) => {
+      const content = s.enrollment.course.dayContents.find(
+        (dc) => dc.dayNumber === s.dayNumber && dc.level === s.enrollment.level,
+      );
+
+      return {
+        dayNumber: s.dayNumber,
+        courseId: s.enrollment.courseId,
+        courseTitle: s.enrollment.course.title,
+        materialText: content?.materialText ?? '',
+        materialFileUrl: content?.materialFileUrl ?? null,
+        videoUrl: content?.videoUrl ?? null,
+      };
+    });
+  }
+
   async getPendingSubmissions() {
     return this.prisma.daySubmission.findMany({
       where: { status: 'PENDING' },

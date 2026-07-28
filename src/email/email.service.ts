@@ -189,7 +189,7 @@ export class EmailService {
     });
   }
 
-  async sendCoursePurchaseEmail(email: string, firstName: string, courseTitle: string, whatsappLink: string | null) {
+  async sendCoursePurchaseEmail(email: string, firstName: string, courseTitle: string, whatsappLink: string | null, classDays?: string | null, classTime?: string | null, venue?: string | null) {
     const whatsappBlock = whatsappLink
       ? `
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin: 28px 0;">
@@ -202,20 +202,49 @@ export class EmailService {
       `
       : '';
 
+    const hasSchedule = classDays || classTime || venue;
+
+    const scheduleBlock = hasSchedule
+      ? `
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin: 28px 0; background-color: #f9fafb; border-radius: 12px; overflow: hidden; border: 1px solid #e5e7eb;">
+          <tr>
+            <td style="padding: 20px 24px; background-color: #fef3c7; border-bottom: 1px solid #e5e7eb;">
+              <p style="margin: 0; color: #92400e; font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">📅 Class Schedule</p>
+            </td>
+          </tr>
+          ${classDays ? `
+          <tr>
+            <td style="padding: 14px 24px; border-bottom: 1px solid #e5e7eb;">
+              <p style="margin: 0; color: #6b7280; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Days</p>
+              <p style="margin: 4px 0 0 0; color: #111827; font-size: 15px; font-weight: 600;">${classDays}</p>
+            </td>
+          </tr>` : ''}
+          ${classTime ? `
+          <tr>
+            <td style="padding: 14px 24px; border-bottom: 1px solid #e5e7eb;">
+              <p style="margin: 0; color: #6b7280; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Time</p>
+              <p style="margin: 4px 0 0 0; color: #111827; font-size: 15px; font-weight: 600;">${classTime}</p>
+            </td>
+          </tr>` : ''}
+          ${venue ? `
+          <tr>
+            <td style="padding: 14px 24px;">
+              <p style="margin: 0; color: #6b7280; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Venue</p>
+              <p style="margin: 4px 0 0 0; color: #111827; font-size: 15px; font-weight: 600;">${venue}</p>
+            </td>
+          </tr>` : ''}
+        </table>
+      `
+      : '';
+
     const content = `
       <div style="text-align: center; margin-bottom: 32px;">
         <div style="display: inline-block; background: linear-gradient(135deg, #059669 0%, #10b981 100%); width: 64px; height: 64px; line-height: 64px; border-radius: 16px; font-size: 28px; color: #ffffff;">🎓</div>
       </div>
       <h2 style="margin: 0 0 12px 0; color: #111827; font-size: 26px; font-weight: 700;">Payment Successful!</h2>
       <p style="margin: 0 0 24px 0; color: #4b5563; font-size: 16px; line-height: 1.7;">Hi ${firstName}, your payment for <strong style="color: #111827;">${courseTitle}</strong> was successful. Welcome to the class!</p>
+      ${scheduleBlock}
       ${whatsappBlock}
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-        <tr>
-          <td align="center">
-            <a href="https://www.innovempia.com/dashboard" target="_blank" style="background-color: #4F46E5; color: #ffffff; text-decoration: none; padding: 14px 36px; border-radius: 50px; font-weight: 600; font-size: 15px; display: inline-block; box-shadow: 0 6px 20px rgba(79, 70, 229, 0.35);">Go to Your Dashboard</a>
-          </td>
-        </tr>
-      </table>
     `;
 
     await this.sendResend({

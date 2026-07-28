@@ -26,6 +26,9 @@ export class PaymentsService {
   async initializeStandaloneCourse(data: EnrollStandaloneDto, courseId: string) {
     const course = await this.prisma.standaloneCourse.findFirst({ where: { id: courseId, isActive: true } });
     if (!course) throw new BadRequestException('Course not found');
+    if (course.deadline && course.deadline < new Date()) {
+      throw new BadRequestException('Registration deadline for this course has passed');
+    }
 
     let user = await this.prisma.user.findUnique({ where: { email: data.email } });
 
@@ -156,7 +159,7 @@ export class PaymentsService {
       
       if (user && course) {
         try {
-          await this.emailService.sendCoursePurchaseEmail(user.email, user.firstName, course.title, course.whatsappGroupLink);
+          await this.emailService.sendCoursePurchaseEmail(user.email, user.firstName, course.title, course.whatsappGroupLink, course.classDays, course.classTime, course.venue);
         } catch (err: any) { console.error('Email failed', err.message); }
       }
     }

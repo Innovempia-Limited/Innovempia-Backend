@@ -88,7 +88,7 @@ export class CmsService {
     let coverUrl: string | undefined;
     if (file?.cover?.[0]) coverUrl = await this.supabase.uploadFile(file.cover[0], 'blog');
     const slug = data.title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-    return this.prisma.blogPost.create({ data: { ...data, slug, coverImageUrl: coverUrl } });
+    return this.prisma.blogPost.create({ data: { ...data, slug, coverImageUrl: coverUrl, ctaLabel: data.ctaLabel, ctaUrl: data.ctaUrl } });
   }
   async updateBlog(id: string, data: any, file: any) {
     const blog = await this.prisma.blogPost.findFirstOrThrow({ where: { id } });
@@ -101,13 +101,15 @@ export class CmsService {
 
     return this.prisma.blogPost.update({
       where: { id },
-      data: { 
-        title: data.title, 
-        slug, 
-        content: data.content, 
-        authorName: data.authorName, 
-        coverImageUrl: coverUrl 
-      },
+data: { 
+         title: data.title, 
+         slug, 
+         content: data.content, 
+         authorName: data.authorName, 
+         coverImageUrl: coverUrl,
+         ctaLabel: data.ctaLabel,
+         ctaUrl: data.ctaUrl
+       },
     });
   }
   async deleteBlog(id: string) {
@@ -239,16 +241,56 @@ export class CmsService {
     return this.prisma.standaloneCourse.create({ 
       data: { 
         title: data.title, 
-        description: data.description, 
-        price: parseFloat(data.price) || 0, // PARSE STRING TO FLOAT
-        content: data.content, 
+        description: data.description || '', 
+        price: parseFloat(data.price) || 0, 
+        content: data.content || '', 
         whatsappGroupLink: data.whatsappGroupLink, 
-        coverImageUrl: coverUrl 
+        coverImageUrl: coverUrl,
+        deadline: data.deadline ? new Date(data.deadline) : undefined,
+        level: data.level || 'BEGINNER',
+        blueprint: data.blueprint || '',
+        classDays: data.classDays,
+        classTime: data.classTime,
+        venue: data.venue
       } 
     });
   }
+  async updateStandaloneCourse(id: string, data: any, file: any) {
+    const course = await this.prisma.standaloneCourse.findFirstOrThrow({ where: { id } });
+    
+    let coverUrl = course.coverImageUrl;
+    if (file?.cover?.[0]) coverUrl = await this.supabase.uploadFile(file.cover[0], 'courses');
+
+    return this.prisma.standaloneCourse.update({
+      where: { id },
+      data: {
+        title: data.title ?? course.title,
+        description: data.description ?? course.description,
+        price: data.price ? parseFloat(data.price) : course.price,
+        content: data.content ?? course.content,
+        whatsappGroupLink: data.whatsappGroupLink,
+        coverImageUrl: coverUrl,
+        deadline: data.deadline ? new Date(data.deadline) : undefined,
+        level: data.level ?? course.level,
+        blueprint: data.blueprint ?? course.blueprint,
+        classDays: data.classDays,
+        classTime: data.classTime,
+        venue: data.venue,
+      },
+    });
+  }
   async getStandaloneCourses() {
-    return this.prisma.standaloneCourse.findMany({ where: { isActive: true }, orderBy: { createdAt: 'desc' } });
+    const now = new Date();
+    return this.prisma.standaloneCourse.findMany({
+      where: {
+        isActive: true,
+        OR: [
+          { deadline: null },
+          { deadline: { gte: now } },
+        ],
+      },
+      orderBy: { createdAt: 'desc' },
+    });
   }
 
   // CONTACT FORM

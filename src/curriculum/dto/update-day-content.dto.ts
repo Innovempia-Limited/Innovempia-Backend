@@ -27,4 +27,9 @@ export class UpdateDayContentDto {
   @IsOptional()
   @IsString()
   materialFile?: string;
+
+  @ApiPropertyOptional({ example: 'https://example.com/video.mp4' })
+  @IsOptional()
+  @IsString()
+  videoUrl?: string;
 }

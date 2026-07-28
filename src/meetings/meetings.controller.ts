@@ -9,6 +9,7 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { MeetingsService } from './meetings.service';
 
 import { RequestMeetingDto } from './dto/request-meeting.dto';
+import { ScheduleConversationDto } from './dto/schedule-conversation.dto';
 import { UpdateMeetingDto } from './dto/update-meeting.dto';
 
 @ApiTags('Meetings')
@@ -41,11 +42,17 @@ export class MeetingsController {
     return this.meetingsService.getAllRequests();
   }
 
+  @Post('schedule')
+  @ApiOperation({ summary: 'Public: Schedule a conversation with admin' })
+  async scheduleConversation(@Body() dto: ScheduleConversationDto) {
+    return this.meetingsService.scheduleConversation(dto);
+  }
+
   @Put('admin/:meetingId')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Admin: Approve or reject a meeting' })
+  @ApiOperation({ summary: 'Admin: Approve, reject, or reschedule a meeting' })
   async updateRequest(@Param('meetingId') id: string, @Body() dto: UpdateMeetingDto) {
     return this.meetingsService.updateRequest(id, dto);
   }

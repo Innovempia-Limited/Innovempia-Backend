@@ -37,6 +37,22 @@ export class SubmissionsController {
     return this.submissionsService.submitDay(userId, dto, files);
   }
 
+  @Get('my/grades')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Student: Get graded submissions history' })
+  async getMyGrades(@CurrentUser('id') userId: string) {
+    return this.submissionsService.getMyGradeHistory(userId);
+  }
+
+  @Get('my/materials')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Student: Get materials for submitted days' })
+  async getMyMaterials(@CurrentUser('id') userId: string) {
+    return this.submissionsService.getMyMaterials(userId);
+  }
+
   @Get('pending')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')

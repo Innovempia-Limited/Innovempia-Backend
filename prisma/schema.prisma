@@ -60,6 +60,7 @@ model User {
   meetingRequests   MeetingRequest[]
   payments          PaymentRecord[]
   jobApplications   JobApplication[]
+  notes             DayNote[]
 
   @@map("users")
 }
@@ -119,6 +120,7 @@ model Enrollment {
   currentSubCategory  CourseSubCategory? @relation(fields: [currentSubCategoryId], references: [id])
   submissions         DaySubmission[]
   certificate         Certificate?
+  notes               DayNote[]
 
   @@unique([userId, courseId])
   @@map("enrollments")
@@ -160,6 +162,7 @@ model DayContent {
   dayNumber           Int
   materialText        String   @default("")
   materialFileUrl     String?
+  videoUrl            String?
   projectDescription  String   @default("")
   projectRequirements String   @default("")
   submissionMethod    String   @default("GITHUB_LINK")
@@ -200,6 +203,23 @@ model Certificate {
   @@map("certificates")
 }
 
+model DayNote {
+  id           String     @id @default(uuid())
+  enrollmentId String
+  userId       String
+  enrollment   Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dayNumber    Int
+  title        String
+  content      String     @default("")
+  fileName     String?
+  fileUrl      String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@map("day_notes")
+}
+
 model QandA {
   id            String   @id @default(uuid())
   userId        String
@@ -215,16 +235,22 @@ model QandA {
 }
 
 model MeetingRequest {
-  id            String   @id @default(uuid())
-  userId        String
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  topic         String
-  proposedDate  String
-  proposedTime  String
-  status        String   @default("PENDING")
-  adminMessage  String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id             String   @id @default(uuid())
+  userId         String?
+  user           User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  recipientName  String
+  recipientEmail String
+  phone          String?
+  topic          String
+  reason         String
+  proposedDate   String
+  proposedTime   String
+  status         String   @default("PENDING")
+  adminMessage   String?
+  rescheduleDate String?
+  rescheduleTime String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   @@map("meeting_requests")
 }
@@ -288,6 +314,8 @@ model BlogPost {
   content       String   @default("") // HTML content
   coverImageUrl String?
   authorName    String?
+  ctaLabel      String?
+  ctaUrl        String?
   isActive      Boolean  @default(true)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -373,6 +401,12 @@ model StandaloneCourse {
   coverImageUrl     String?
   content           String   @default("") // HTML content
   whatsappGroupLink String?
+  deadline          DateTime?
+  level             Level    @default(BEGINNER)
+  blueprint         String   @default("")
+  classDays         String?
+  classTime         String?
+  venue             String?
   isActive          Boolean  @default(true)
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt

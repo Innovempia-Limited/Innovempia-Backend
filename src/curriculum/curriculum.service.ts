@@ -37,6 +37,7 @@ export class CurriculumService {
         projectDescription: dto.projectDescription || '',
         projectRequirements: dto.projectRequirements || '',
         submissionMethod: dto.submissionMethod,
+        videoUrl: dto.videoUrl,
       },
     });
   }
@@ -68,6 +69,7 @@ export class CurriculumService {
         ...(dto.projectDescription !== undefined && { projectDescription: dto.projectDescription }),
         ...(dto.projectRequirements !== undefined && { projectRequirements: dto.projectRequirements }),
         ...(dto.submissionMethod && { submissionMethod: dto.submissionMethod }),
+        ...(dto.videoUrl !== undefined && { videoUrl: dto.videoUrl }),
         materialFileUrl,
       },
     });

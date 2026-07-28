@@ -13,6 +13,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CmsService } from './cms.service';
 
 import { ContactDto } from './dto/contact.dto';
+import { StandaloneCourseDto } from './dto/standalone-course.dto';
 import {EnrollStandaloneDto} from '../payments/enroll-standalone.dto'
 @ApiTags('CMS & Public')
 @Controller('cms')
@@ -222,19 +223,21 @@ export class CmsController {
   @ApiBearerAuth()
   @ApiConsumes('multipart/form-data')
   @ApiOperation({ summary: 'Admin: Add blog post (HTML content)' })
-  @ApiBody({
-    schema: {
-      type: 'object',
-      properties: {
-        title: { type: 'string' },
-        content: { type: 'string' },
-        authorName: { type: 'string' },
-        cover: { type: 'string', format: 'binary' }
-      },
-    },
-  })
-  @UseInterceptors(FileFieldsInterceptor([{ name: 'cover', maxCount: 1 }]))
-  addBlog(@Body() data: any, @UploadedFiles() files: any) { return this.cmsService.addBlog(data, files); }
+@ApiBody({
+     schema: {
+       type: 'object',
+       properties: {
+         title: { type: 'string' },
+         content: { type: 'string' },
+         authorName: { type: 'string' },
+         ctaLabel: { type: 'string' },
+         ctaUrl: { type: 'string' },
+         cover: { type: 'string', format: 'binary' }
+       },
+     },
+   })
+   @UseInterceptors(FileFieldsInterceptor([{ name: 'cover', maxCount: 1 }]))
+   addBlog(@Body() data: any, @UploadedFiles() files: any) { return this.cmsService.addBlog(data, files); }
 
   @Put('admin/blogs/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -242,19 +245,21 @@ export class CmsController {
   @ApiBearerAuth()
   @ApiConsumes('multipart/form-data')
   @ApiOperation({ summary: 'Admin: Edit a blog post' })
-  @ApiBody({
-    schema: {
-      type: 'object',
-      properties: {
-        title: { type: 'string' },
-        content: { type: 'string' },
-        authorName: { type: 'string' },
-        cover: { type: 'string', format: 'binary' }
-      },
-    },
-  })
-  @UseInterceptors(FileFieldsInterceptor([{ name: 'cover', maxCount: 1 }]))
-  updateBlog(@Param('id') id: string, @Body() data: any, @UploadedFiles() files: any) { return this.cmsService.updateBlog(id, data, files); }
+@ApiBody({
+     schema: {
+       type: 'object',
+       properties: {
+         title: { type: 'string' },
+         content: { type: 'string' },
+         authorName: { type: 'string' },
+         ctaLabel: { type: 'string' },
+         ctaUrl: { type: 'string' },
+         cover: { type: 'string', format: 'binary' }
+       },
+     },
+   })
+   @UseInterceptors(FileFieldsInterceptor([{ name: 'cover', maxCount: 1 }]))
+   updateBlog(@Param('id') id: string, @Body() data: any, @UploadedFiles() files: any) { return this.cmsService.updateBlog(id, data, files); }
 
   @Delete('admin/blogs/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -370,10 +375,44 @@ export class CmsController {
         price: { type: 'number' },
         content: { type: 'string' },
         whatsappGroupLink: { type: 'string' },
+        deadline: { type: 'string', format: 'date-time' },
+        level: { type: 'string', enum: ['BEGINNER', 'INTERMEDIATE', 'ADVANCED'] },
+        blueprint: { type: 'string' },
+        classDays: { type: 'string' },
+        classTime: { type: 'string' },
+        venue: { type: 'string' },
         cover: { type: 'string', format: 'binary' }
       }
     }
   })
   @UseInterceptors(FileFieldsInterceptor([{ name: 'cover', maxCount: 1 }]))
   addStandaloneCourse(@Body() data: any, @UploadedFiles() files: any) { return this.cmsService.addStandaloneCourse(data, files); }
+
+  @Put('admin/standalone-courses/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiBearerAuth()
+  @ApiConsumes('multipart/form-data')
+  @ApiOperation({ summary: 'Admin: Update standalone paid course' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        title: { type: 'string' },
+        description: { type: 'string' },
+        price: { type: 'number' },
+        content: { type: 'string' },
+        whatsappGroupLink: { type: 'string' },
+        deadline: { type: 'string', format: 'date-time' },
+        level: { type: 'string', enum: ['BEGINNER', 'INTERMEDIATE', 'ADVANCED'] },
+        blueprint: { type: 'string' },
+        classDays: { type: 'string' },
+        classTime: { type: 'string' },
+        venue: { type: 'string' },
+        cover: { type: 'string', format: 'binary' }
+      }
+    }
+  })
+  @UseInterceptors(FileFieldsInterceptor([{ name: 'cover', maxCount: 1 }]))
+  updateStandaloneCourse(@Param('id') id: string, @Body() data: any, @UploadedFiles() files: any) { return this.cmsService.updateStandaloneCourse(id, data, files); }
 }

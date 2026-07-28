@@ -11,6 +11,7 @@ import { CoursesModule } from './courses/courses.module';
 import { CurriculumModule } from './curriculum/curriculum.module';
 import { EmailModule } from './email/email.module';
 import { MeetingsModule } from './meetings/meetings.module';
+import { NotesModule } from './notes/notes.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { PaymentsModule } from './payments/payments.module';
 import { PrismaModule } from './prisma/prisma.module';
