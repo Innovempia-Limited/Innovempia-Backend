@@ -1,11 +1,12 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 
 import { EmailService } from '../email/email.service';
 import { PrismaService } from '../prisma/prisma.service';
 
-import { EnrollStandaloneDto } from './enroll-standalone.dto'; // <-- THIS WAS MISSING
+import { EnrollStandaloneDto } from './enroll-standalone.dto';
+import { SubscribeMenteeDto } from './subscribe-mentee.dto';
 
 @Injectable()
 export class PaymentsService {
@@ -190,5 +191,89 @@ export class PaymentsService {
     });
 
     return { message: 'Subscription cancelled successfully' };
+  }
+
+  async getSubscriptionStatus(userId: string) {
+    const activePayment = await this.prisma.paymentRecord.findFirst({
+      where: { userId, type: 'SUBSCRIPTION', status: 'SUCCESS', isActive: true },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return {
+      hasActiveSubscription: !!activePayment,
+      subscription: activePayment
+        ? {
+            id: activePayment.id,
+            type: activePayment.type,
+            status: activePayment.status,
+            amount: activePayment.amount,
+            endDate: activePayment.endDate,
+            createdAt: activePayment.createdAt,
+          }
+        : null,
+    };
+  }
+
+  async resubscribe(userId: string, dto: SubscribeMenteeDto) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundException('User not found');
+
+    let courseId = dto.courseId;
+
+    if (courseId) {
+      const course = await this.prisma.mentorshipCourse.findFirst({
+        where: { id: courseId, isActive: true },
+      });
+      if (!course) throw new BadRequestException('Course not found');
+    }
+
+    let enrollment = await this.prisma.enrollment.findFirst({
+      where: { userId, courseId: courseId || '' },
+    });
+
+    if (!enrollment && courseId) {
+      enrollment = await this.prisma.enrollment.create({
+        data: {
+          userId,
+          courseId,
+          currentDay: 1,
+          level: 'BEGINNER',
+          status: 'ACTIVE',
+        },
+      });
+    } else if (enrollment && (enrollment.status === 'SUSPENDED' || enrollment.status === 'COMPLETED')) {
+      enrollment = await this.prisma.enrollment.update({
+        where: { id: enrollment.id },
+        data: { status: 'ACTIVE', currentDay: 1, level: 'BEGINNER' },
+      });
+    }
+
+    const amountInKobo = 25000 * 100;
+
+    const res = await fetch('https://api.paystack.co/transaction/initialize', {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify({
+        email: user.email,
+        amount: amountInKobo,
+        metadata: { subscription_init: true, user_id: userId, ...(courseId ? { course_id: courseId } : {}) },
+      }),
+    });
+
+    const data = await res.json() as any;
+    if (!data.status) throw new BadRequestException('Could not initialize subscription payment');
+
+    await this.prisma.paymentRecord.create({
+      data: {
+        userId,
+        type: 'SUBSCRIPTION',
+        amount: 25000,
+        status: 'PENDING',
+        paystackReference: data.data.reference,
+        endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      },
+    });
+
+    return { authorization_url: data.data.authorization_url, reference: data.data.reference };
   }
 }
