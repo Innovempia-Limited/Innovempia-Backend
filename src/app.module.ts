@@ -31,6 +31,7 @@ import { SubmissionsModule } from './submissions/submissions.module';
     CurriculumModule,
     SubmissionsModule,
     MeetingsModule,
+    NotesModule,
     PaymentsModule,
     CmsModule
   ],
