@@ -238,11 +238,11 @@ model MeetingRequest {
   id             String   @id @default(uuid())
   userId         String?
   user           User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
-  recipientName  String
-  recipientEmail String
+  recipientName  String?
+  recipientEmail String?
   phone          String?
   topic          String
-  reason         String
+  reason         String?
   proposedDate   String
   proposedTime   String
   status         String   @default("PENDING")
