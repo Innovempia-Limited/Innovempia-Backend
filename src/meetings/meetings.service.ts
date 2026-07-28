@@ -134,6 +134,38 @@ export class MeetingsService {
           dto.adminMessage || `Your meeting request for "${updated.topic}" has been ${dto.status.toLowerCase()}.`,
         );
       }
+
+      const recipientEmail = updated.recipientEmail || (recipientId ? (await this.prisma.user.findUnique({ where: { id: recipientId }, select: { email: true } }))?.email : undefined);
+      if (recipientEmail) {
+        const apiKey = this.config.get('RESEND_API_KEY');
+        if (apiKey) {
+          const subject = `Meeting ${dto.status}: ${updated.topic}`;
+          const html = `
+            <h2>Meeting ${dto.status}</h2>
+            <p>${dto.adminMessage || `Your meeting request for "<strong>${updated.topic}</strong>" has been <strong>${dto.status.toLowerCase()}</strong>.`}</p>
+            <p><strong>Proposed Date:</strong> ${updated.proposedDate}</p>
+            <p><strong>Proposed Time:</strong> ${updated.proposedTime}</p>
+          `;
+
+          try {
+            await fetch('https://api.resend.com/emails', {
+              method: 'POST',
+              headers: {
+                Authorization: `Bearer ${apiKey}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                from: this.config.get('FROM_EMAIL', 'Innovempia <mail@innovempia.com>'),
+                to: [recipientEmail],
+                subject,
+                html,
+              }),
+            });
+          } catch (e) {
+            // ignore email failure
+          }
+        }
+      }
     }
 
     if (dto.status === 'RESCHEDULED' && updated.recipientEmail) {
