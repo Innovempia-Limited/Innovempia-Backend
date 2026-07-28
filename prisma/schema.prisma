@@ -289,6 +289,12 @@ model PortfolioProject {
   liveUrl             String?
   duration            String?
   backgroundImageUrl  String?
+  status              String?
+  techStack           String[]
+  aiIntegrationDetails String?
+  metrics             String[]
+  architectureHighlight String?
+  projectType         String?
   isActive            Boolean  @default(true)
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt

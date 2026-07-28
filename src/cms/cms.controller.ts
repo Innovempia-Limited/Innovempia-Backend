@@ -208,6 +208,12 @@ export class CmsController {
         sourceCodeUrl: { type: 'string' },
         liveUrl: { type: 'string' },
         duration: { type: 'string' },
+        status: { type: 'string' },
+        techStack: { type: 'array', items: { type: 'string' } },
+        aiIntegrationDetails: { type: 'string' },
+        metrics: { type: 'array', items: { type: 'string' } },
+        architectureHighlight: { type: 'string' },
+        projectType: { type: 'string' },
         background: { type: 'string', format: 'binary' },
         images: { type: 'array', items: { type: 'string', format: 'binary' } }
       }
@@ -215,6 +221,36 @@ export class CmsController {
   })
   @UseInterceptors(FileFieldsInterceptor([{ name: 'background', maxCount: 1 }, { name: 'images', maxCount: 10 }]))
   addProject(@Body() data: any, @UploadedFiles() files: any) { return this.cmsService.addProject(data, files); }
+
+  @Put('admin/projects/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiBearerAuth()
+  @ApiConsumes('multipart/form-data')
+  @ApiOperation({ summary: 'Admin: Edit portfolio project' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        title: { type: 'string' },
+        description: { type: 'string' },
+        demoUrl: { type: 'string' },
+        sourceCodeUrl: { type: 'string' },
+        liveUrl: { type: 'string' },
+        duration: { type: 'string' },
+        status: { type: 'string' },
+        techStack: { type: 'array', items: { type: 'string' } },
+        aiIntegrationDetails: { type: 'string' },
+        metrics: { type: 'array', items: { type: 'string' } },
+        architectureHighlight: { type: 'string' },
+        projectType: { type: 'string' },
+        background: { type: 'string', format: 'binary' },
+        images: { type: 'array', items: { type: 'string', format: 'binary' } }
+      }
+    }
+  })
+  @UseInterceptors(FileFieldsInterceptor([{ name: 'background', maxCount: 1 }, { name: 'images', maxCount: 10 }]))
+  updateProject(@Param('id') id: string, @Body() data: any, @UploadedFiles() files: any) { return this.cmsService.updateProject(id, data, files); }
 
   // --- BLOGS ---
   @Post('admin/blogs')

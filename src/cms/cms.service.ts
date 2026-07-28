@@ -68,7 +68,21 @@ export class CmsService {
     if (files?.background?.[0]) bgUrl = await this.supabase.uploadFile(files.background[0], 'portfolio');
     
     const project = await this.prisma.portfolioProject.create({
-      data: { title: data.title, description: data.description, demoUrl: data.demoUrl, sourceCodeUrl: data.sourceCodeUrl, liveUrl: data.liveUrl, duration: data.duration, backgroundImageUrl: bgUrl }
+      data: {
+        title: data.title,
+        description: data.description,
+        demoUrl: data.demoUrl,
+        sourceCodeUrl: data.sourceCodeUrl,
+        liveUrl: data.liveUrl,
+        duration: data.duration,
+        backgroundImageUrl: bgUrl,
+        status: data.status,
+        techStack: data.techStack,
+        aiIntegrationDetails: data.aiIntegrationDetails,
+        metrics: data.metrics,
+        architectureHighlight: data.architectureHighlight,
+        projectType: data.projectType,
+      }
     });
 
     if (files?.images) {
@@ -78,6 +92,40 @@ export class CmsService {
       }
     }
     return project;
+  }
+  async updateProject(id: string, data: any, files: any) {
+    const project = await this.prisma.portfolioProject.findFirstOrThrow({ where: { id } });
+    
+    let bgUrl = project.backgroundImageUrl;
+    if (files?.background?.[0]) bgUrl = await this.supabase.uploadFile(files.background[0], 'portfolio');
+
+    const updated = await this.prisma.portfolioProject.update({
+      where: { id },
+      data: {
+        title: data.title ?? project.title,
+        description: data.description ?? project.description,
+        demoUrl: data.demoUrl,
+        sourceCodeUrl: data.sourceCodeUrl,
+        liveUrl: data.liveUrl,
+        duration: data.duration,
+        backgroundImageUrl: bgUrl,
+        status: data.status,
+        techStack: data.techStack,
+        aiIntegrationDetails: data.aiIntegrationDetails,
+        metrics: data.metrics,
+        architectureHighlight: data.architectureHighlight,
+        projectType: data.projectType,
+      },
+    });
+
+    if (files?.images) {
+      for (const img of files.images) {
+        const url = await this.supabase.uploadFile(img, 'portfolio');
+        await this.prisma.portfolioProjectImage.create({ data: { url, projectId: updated.id } });
+      }
+    }
+
+    return updated;
   }
   async getProjects() {
     return this.prisma.portfolioProject.findMany({ where: { isActive: true }, include: { images: true }, orderBy: { createdAt: 'desc' } });
