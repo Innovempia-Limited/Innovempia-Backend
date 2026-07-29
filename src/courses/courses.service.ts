@@ -104,8 +104,8 @@ export class CoursesService {
     return this.prisma.courseSubCategory.create({ 
       data: { 
         name: dto.name,
-        order: dto.order,
-        durationDays: dto.durationDays,
+        order: parseInt(dto.order, 10),
+        durationDays: parseInt(dto.durationDays, 10),
         courseId,
         curriculumDocumentUrl,
       } 

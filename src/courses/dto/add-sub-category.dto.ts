@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
-import { IsInt, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsInt, IsNotEmpty, IsOptional, IsString, IsNumberString } from 'class-validator';
 
 export class AddSubCategoryDto {
   @ApiProperty({ example: 'HTML Basics' })
@@ -10,12 +10,14 @@ export class AddSubCategoryDto {
 
   @ApiProperty({ example: 1, description: 'Order of the sub-category (1 comes first)' })
   @IsInt()
-  order!: number;
+  @IsNumberString()
+  order!: string;
 
   @ApiProperty({ example: 15, description: 'How many days this sub-category takes' })
   @IsInt()
   @IsNotEmpty()
-  durationDays!: number;
+  @IsNumberString()
+  durationDays!: string;
 
   @ApiPropertyOptional({ type: 'string', format: 'binary', description: 'Sub-category curriculum document' })
   @IsOptional()
