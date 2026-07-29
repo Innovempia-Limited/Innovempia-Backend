@@ -102,4 +102,10 @@ export class AdminController {
   async deletePortfolioProject(@Param('id') id: string) {
     return this.adminService.deletePortfolioProject(id);
   }
+
+  @Get('certificates/overview')
+  @ApiOperation({ summary: 'View students with issued certificates and students eligible for certificates' })
+  async getCertificateOverview() {
+    return this.adminService.getCertificateOverview();
+  }
 }

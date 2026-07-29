@@ -177,4 +177,70 @@ export class AdminService {
       data: { isActive: false },
     });
   }
+
+  async getCertificateOverview() {
+    const [issued, eligible] = await Promise.all([
+      this.prisma.certificate.findMany({
+        include: {
+          enrollment: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  email: true,
+                  firstName: true,
+                  lastName: true,
+                  role: true,
+                  isActive: true,
+                },
+              },
+              course: {
+                select: {
+                  id: true,
+                  title: true,
+                  type: true,
+                },
+              },
+            },
+          },
+        },
+        orderBy: { issuedAt: 'desc' },
+      }),
+      this.prisma.enrollment.findMany({
+        where: {
+          status: 'COMPLETED',
+          certificate: null,
+        },
+        include: {
+          user: {
+            select: {
+              id: true,
+              email: true,
+              firstName: true,
+              lastName: true,
+              role: true,
+              isActive: true,
+            },
+          },
+          course: {
+            select: {
+              id: true,
+              title: true,
+              type: true,
+            },
+          },
+        },
+        orderBy: { updatedAt: 'desc' },
+      }),
+    ]);
+
+    return {
+      issued,
+      eligible,
+      summary: {
+        issuedCount: issued.length,
+        eligibleCount: eligible.length,
+      },
+    };
+  }
 }
