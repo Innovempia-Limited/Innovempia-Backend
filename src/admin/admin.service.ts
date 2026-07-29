@@ -162,4 +162,19 @@ export class AdminService {
       orderBy: { createdAt: 'desc' },
     });
   }
+
+  async getAllPortfolioProjects() {
+    return this.prisma.portfolioProject.findMany({
+      include: { images: true },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async deletePortfolioProject(id: string) {
+    await this.prisma.portfolioProject.findFirstOrThrow({ where: { id } });
+    return this.prisma.portfolioProject.update({
+      where: { id },
+      data: { isActive: false },
+    });
+  }
 }

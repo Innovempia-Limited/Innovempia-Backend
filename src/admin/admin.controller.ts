@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Param, UploadedFiles, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, Post, Param, Delete, UploadedFiles, UseGuards, UseInterceptors } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse, ApiConsumes, ApiBody } from '@nestjs/swagger';
 
@@ -89,5 +89,17 @@ export class AdminController {
   @ApiOperation({ summary: 'View all standalone course applications/students' })
   async getStandaloneCourseApplications() {
     return this.adminService.getStandaloneCourseApplications();
+  }
+
+  @Get('portfolio-projects')
+  @ApiOperation({ summary: 'View all portfolio projects (including inactive)' })
+  async getPortfolioProjects() {
+    return this.adminService.getAllPortfolioProjects();
+  }
+
+  @Delete('portfolio-projects/:id')
+  @ApiOperation({ summary: 'Delete a portfolio project (soft delete)' })
+  async deletePortfolioProject(@Param('id') id: string) {
+    return this.adminService.deletePortfolioProject(id);
   }
 }
