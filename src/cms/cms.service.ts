@@ -232,7 +232,20 @@ data: {
   }
   async deleteJob(id: string) {
     await this.prisma.jobRole.findFirstOrThrow({ where: { id } });
-    return this.prisma.jobRole.delete({ where: { id } });
+    return this.prisma.jobRole.update({ where: { id }, data: { isActive: false } });
+  }
+  async updateJob(id: string, data: any) {
+    const job = await this.prisma.jobRole.findFirstOrThrow({ where: { id } });
+    return this.prisma.jobRole.update({
+      where: { id },
+      data: {
+        title: data.title ?? job.title,
+        type: data.type ?? job.type,
+        description: data.description ?? job.description,
+        requirements: data.requirements ?? job.requirements,
+        salaryRange: data.salaryRange ?? job.salaryRange,
+      },
+    });
   }
   async applyToJob(jobId: string, data: any, file: any) {
     // Check if user already applied (by userId if logged in, or by email if guest)
