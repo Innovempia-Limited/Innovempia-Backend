@@ -84,4 +84,10 @@ export class AdminController {
     const { password, ...profile } = user;
     return profile;
   }
+
+  @Get('standalone-courses/applications')
+  @ApiOperation({ summary: 'View all standalone course applications/students' })
+  async getStandaloneCourseApplications() {
+    return this.adminService.getStandaloneCourseApplications();
+  }
 }

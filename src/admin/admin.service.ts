@@ -128,4 +128,38 @@ export class AdminService {
       where: { enrollmentId },
     });
   }
+
+  async getStandaloneCourseApplications() {
+    return this.prisma.paymentRecord.findMany({
+      where: { type: 'STANDALONE_COURSE' },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            phone: true,
+            role: true,
+            isActive: true,
+            createdAt: true,
+          },
+        },
+        course: {
+          select: {
+            id: true,
+            title: true,
+            price: true,
+            level: true,
+            classDays: true,
+            classTime: true,
+            venue: true,
+            startDate: true,
+            deadline: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
 }
