@@ -88,10 +88,11 @@ export class EmailService {
       <p style="margin: 0 0 24px 0; color: #4b5563; font-size: 16px; line-height: 1.7;">
         You have successfully enrolled in <strong style="color: #4F46E5; font-weight: 600;">${courseTitle}</strong>. Your learning journey starts now — we are excited to have you here.
       </p>
+      <p>Temporary Password: Password123!</p>
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin: 28px 0;">
         <tr>
           <td align="center">
-            <a href="https://www.innovempia.com/mentor/dashboard" target="_blank" style="background-color: #4F46E5; color: #ffffff; text-decoration: none; padding: 14px 36px; border-radius: 50px; font-weight: 600; font-size: 15px; display: inline-block; box-shadow: 0 6px 20px rgba(79, 70, 229, 0.35);">Go to My Dashboard</a>
+            <a href="https://www.innovempia.com/mentor/dashboard/login" target="_blank" style="background-color: #4F46E5; color: #ffffff; text-decoration: none; padding: 14px 36px; border-radius: 50px; font-weight: 600; font-size: 15px; display: inline-block; box-shadow: 0 6px 20px rgba(79, 70, 229, 0.35);">Go to My Dashboard</a>
           </td>
         </tr>
       </table>
@@ -174,7 +175,7 @@ export class EmailService {
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
         <tr>
           <td align="center">
-            <a href="https://www.innovempia.com/dashboard" target="_blank" style="background-color: #111827; color: #ffffff; text-decoration: none; padding: 12px 32px; border-radius: 50px; font-weight: 600; font-size: 14px; display: inline-block;">View in Admin Dashboard</a>
+            <a href="https://www.innovempia.com/admin/dashboard" target="_blank" style="background-color: #111827; color: #ffffff; text-decoration: none; padding: 12px 32px; border-radius: 50px; font-weight: 600; font-size: 14px; display: inline-block;">View in Admin Dashboard</a>
           </td>
         </tr>
       </table>
