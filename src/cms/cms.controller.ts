@@ -192,6 +192,30 @@ export class CmsController {
   @ApiBearerAuth()
   deleteTeam(@Param('id') id: string) { return this.cmsService.deleteTeamMember(id); }
 
+  @Put('admin/team/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiBearerAuth()
+  @ApiConsumes('multipart/form-data')
+  @ApiOperation({ summary: 'Admin: Edit team member' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        name: { type: 'string' },
+        position: { type: 'string' },
+        email: { type: 'string' },
+        twitterUrl: { type: 'string' },
+        linkedinUrl: { type: 'string' },
+        githubUrl: { type: 'string' },
+        order: { type: 'number' },
+        image: { type: 'string', format: 'binary' }
+      }
+    }
+  })
+  @UseInterceptors(FileFieldsInterceptor([{ name: 'image', maxCount: 1 }]))
+  updateTeam(@Param('id') id: string, @Body() data: any, @UploadedFiles() files: any) { return this.cmsService.updateTeamMember(id, data, files); }
+
   @Post('admin/projects')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')

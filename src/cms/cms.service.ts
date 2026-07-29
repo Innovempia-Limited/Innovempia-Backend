@@ -61,6 +61,25 @@ export class CmsService {
   async deleteTeamMember(id: string) {
     return this.prisma.teamMember.delete({ where: { id } });
   }
+  async updateTeamMember(id: string, data: any, file: any) {
+    const member = await this.prisma.teamMember.findFirstOrThrow({ where: { id } });
+    let imageUrl = member.imageUrl;
+    if (file?.image?.[0]) imageUrl = await this.supabase.uploadFile(file.image[0], 'team');
+
+    return this.prisma.teamMember.update({
+      where: { id },
+      data: {
+        name: data.name ?? member.name,
+        position: data.position ?? member.position,
+        email: data.email ?? member.email,
+        twitterUrl: data.twitterUrl,
+        linkedinUrl: data.linkedinUrl,
+        githubUrl: data.githubUrl,
+        order: data.order !== undefined ? parseInt(data.order, 10) : member.order,
+        imageUrl,
+      },
+    });
+  }
 
   // PORTFOLIO
   async addProject(data: any, files: any) {
