@@ -95,6 +95,7 @@ export class CoursesController {
         requirements: { type: 'string' },
         instructorName: { type: 'string' },
         instructorBio: { type: 'string' },
+        totalDays: { type: 'string', example: '90', description: 'Total duration in days' },
         image: { type: 'string', format: 'binary' },
         video: { type: 'string', format: 'binary' },
         instructorImage: { type: 'string', format: 'binary' },

@@ -74,6 +74,7 @@ export class CoursesService {
         ...(dto.requirements !== undefined && { requirements: dto.requirements }),
         ...(dto.instructorName && { instructorName: dto.instructorName }),
         ...(dto.instructorBio !== undefined && { instructorBio: dto.instructorBio }),
+        ...(dto.totalDays !== undefined && { totalDays: parseInt(dto.totalDays, 10) || null }),
         imageUrl,
         videoUrl,
         instructorImage,
