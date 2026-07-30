@@ -118,6 +118,25 @@ export class CurriculumService {
     });
 
     if (!content) {
+      const other = await this.prisma.dayContent.findFirst({
+        where: {
+          courseId: enrollment.courseId,
+          subCategoryId: enrollment.currentSubCategoryId,
+          dayNumber: enrollment.currentDay,
+          isActive: true,
+        },
+      });
+
+      if (other && other.level !== enrollment.level) {
+        return {
+          message: `Level upgrade required. Subscribe to access ${other.level} content.`,
+          data: null,
+          upgradeRequired: true,
+          requiredLevel: other.level,
+          currentLevel: enrollment.level,
+        };
+      }
+
       return { message: 'No content uploaded for this day yet.', data: null };
     }
 

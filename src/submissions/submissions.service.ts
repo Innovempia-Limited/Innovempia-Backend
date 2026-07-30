@@ -1,5 +1,6 @@
 import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 
+import { EmailService } from '../email/email.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { SupabaseService } from '../supabase/supabase.service';
@@ -13,6 +14,7 @@ export class SubmissionsService {
     private prisma: PrismaService,
     private supabase: SupabaseService,
     private notifService: NotificationsService,
+    private emailService: EmailService,
   ) {}
 
   async submitDay(userId: string, dto: SubmitDayDto, files: any) {
@@ -77,20 +79,26 @@ export class SubmissionsService {
       const enrollment = submission.enrollment;
       const nextDay = enrollment.currentDay + 1;
 
-      // AUTO-MOVE LOGIC: Check if they just finished the last day of a sub-category
+      // Determine the next day's content and detect level changes
+      const LEVEL_ORDER: Record<string, number> = { BEGINNER: 0, INTERMEDIATE: 1, ADVANCED: 2, COMPLETED: 3 };
+      const currentLevelRank = LEVEL_ORDER[enrollment.level] ?? 0;
+
       if (enrollment.currentSubCategoryId && enrollment.currentSubCategory) {
         if (nextDay > enrollment.currentSubCategory.durationDays) {
-          // Find the next sub-category
           const nextSub = await this.prisma.courseSubCategory.findFirst({
-            where: {
-              courseId: enrollment.courseId,
-              order: { gt: enrollment.currentSubCategory.order },
-            },
+            where: { courseId: enrollment.courseId, order: { gt: enrollment.currentSubCategory.order } },
             orderBy: { order: 'asc' },
           });
 
           if (nextSub) {
-            // Move to Day 1 of the next sub-category
+            const nextDayContent = await this.prisma.dayContent.findFirst({
+              where: { courseId: enrollment.courseId, subCategoryId: nextSub.id, dayNumber: 1, isActive: true },
+            });
+
+            if (nextDayContent && (LEVEL_ORDER[nextDayContent.level] ?? 0) > currentLevelRank) {
+              await this.sendLevelUpgradeNotification(enrollment, nextDayContent.level);
+            }
+
             await this.prisma.enrollment.update({
               where: { id: enrollment.id },
               data: { currentSubCategoryId: nextSub.id, currentDay: 1 },
@@ -101,7 +109,6 @@ export class SubmissionsService {
               `You finished ${enrollment.currentSubCategory.name}! Moving to ${nextSub.name} - Day 1.`,
             );
           } else {
-            // No more subs. Keep them on the last day (Final exam state handled later)
             await this.prisma.enrollment.update({
               where: { id: enrollment.id },
               data: { currentDay: nextDay },
@@ -113,14 +120,20 @@ export class SubmissionsService {
             );
           }
         } else {
-          // Just increment the day normally
+          const nextDayContent = await this.prisma.dayContent.findFirst({
+            where: { courseId: enrollment.courseId, subCategoryId: enrollment.currentSubCategoryId, dayNumber: nextDay, isActive: true },
+          });
+
+          if (nextDayContent && (LEVEL_ORDER[nextDayContent.level] ?? 0) > currentLevelRank) {
+            await this.sendLevelUpgradeNotification(enrollment, nextDayContent.level);
+          }
+
           await this.prisma.enrollment.update({
             where: { id: enrollment.id },
             data: { currentDay: nextDay },
           });
         }
       } else {
-        // Specific language track (no subs), just increment day
         await this.prisma.enrollment.update({
           where: { id: enrollment.id },
           data: { currentDay: nextDay },
@@ -195,6 +208,28 @@ export class SubmissionsService {
         videoUrl: content?.videoUrl ?? null,
       };
     });
+  }
+
+  private async sendLevelUpgradeNotification(enrollment: any, requiredLevel: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: enrollment.userId } });
+    if (!user) return;
+
+    await this.notifService.create(
+      enrollment.userId,
+      'Level Upgrade Required',
+      `You've completed all ${enrollment.level} content. Subscribe to access ${requiredLevel} content.`,
+    );
+
+    try {
+      await this.emailService.sendLevelUpgradeEmail(
+        user.email,
+        user.firstName,
+        enrollment.level,
+        requiredLevel,
+      );
+    } catch (err: any) {
+      console.error('Level upgrade email failed', err.message);
+    }
   }
 
   async getPendingSubmissions() {

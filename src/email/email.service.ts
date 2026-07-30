@@ -294,4 +294,31 @@ export class EmailService {
 
     return { message: `Email sent to ${students.length} students.` };
   }
+
+  async sendLevelUpgradeEmail(email: string, firstName: string, currentLevel: string, requiredLevel: string) {
+    const content = `
+      <div style="text-align: center; margin-bottom: 32px;">
+        <div style="display: inline-block; background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%); width: 64px; height: 64px; line-height: 64px; border-radius: 16px; font-size: 28px; color: #ffffff;">🎯</div>
+      </div>
+      <h2 style="margin: 0 0 12px 0; color: #111827; font-size: 26px; font-weight: 700;">Level Upgrade Required</h2>
+      <p style="margin: 0 0 24px 0; color: #4b5563; font-size: 16px; line-height: 1.7;">Hi ${firstName}, you have successfully completed all <strong style="color: #4F46E5; font-weight: 600;">${currentLevel}</strong> level content. To continue your learning journey, you need to upgrade to <strong style="color: #4F46E5; font-weight: 600;">${requiredLevel}</strong> level.</p>
+      <div style="background-color: #eef2ff; border-left: 4px solid #4F46E5; padding: 16px 20px; border-radius: 0 10px 10px 0; margin-bottom: 24px;">
+        <p style="margin: 0; color: #374151; font-size: 14px; line-height: 1.6;"><strong>What happens next?</strong> Complete your subscription payment to unlock the next level and continue learning immediately.</p>
+      </div>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+        <tr>
+          <td align="center">
+            <a href="https://www.innovempia.com/dashboard" target="_blank" style="background-color: #4F46E5; color: #ffffff; text-decoration: none; padding: 14px 36px; border-radius: 50px; font-weight: 600; font-size: 15px; display: inline-block; box-shadow: 0 6px 20px rgba(79, 70, 229, 0.35);">Upgrade Now</a>
+          </td>
+        </tr>
+      </table>
+    `;
+
+    await this.sendResend({
+      from: this.config.get('FROM_EMAIL', 'Innovempia <mail@innovempia.com>'),
+      to: [email],
+      subject: `Level Upgrade Required: ${currentLevel} → ${requiredLevel}`,
+      html: this.buildTemplate(content),
+    });
+  }
 }
