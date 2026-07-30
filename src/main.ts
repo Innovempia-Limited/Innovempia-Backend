@@ -15,10 +15,17 @@ async function bootstrap() {
   );
 
   app.enableCors({
-    origin: ['http://localhost:3000', 'http://127.0.0.1:3000', 'https://www.innovempia.com'],
+    origin: ['http://localhost:3000', 'http://127.0.0.1:3000', 'https://www.innovempia.com', 'https://innovempia.com'],
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'Origin',
+      'Accept',
+      'X-Requested-With',
+      'Access-Control-Allow-Origin',
+    ],
   });
 
   app.setGlobalPrefix('api', {
