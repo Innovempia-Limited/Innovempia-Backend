@@ -21,6 +21,20 @@ export class CurriculumService {
       throw new BadRequestException('subCategoryId is required for TRACK courses');
     }
 
+    const existing = await this.prisma.dayContent.findFirst({
+      where: {
+        courseId: dto.courseId,
+        subCategoryId: dto.subCategoryId || null,
+        level: dto.level as any,
+        dayNumber: parseInt(dto.dayNumber, 10),
+      },
+    });
+    if (existing) {
+      throw new BadRequestException(
+        `Day ${dto.dayNumber} already exists for this course/sub-category/level combination.`,
+      );
+    }
+
     let materialFileUrl: string | undefined;
     if (file?.materialFile?.[0]) {
       materialFileUrl = await this.supabase.uploadFile(file.materialFile[0], 'materials');
@@ -38,6 +52,7 @@ export class CurriculumService {
         projectRequirements: dto.projectRequirements || '',
         submissionMethod: dto.submissionMethod,
         videoUrl: dto.videoUrl,
+        isFinalQuiz: dto.isFinalQuiz || false,
       },
     });
   }
@@ -70,6 +85,7 @@ export class CurriculumService {
         ...(dto.projectRequirements !== undefined && { projectRequirements: dto.projectRequirements }),
         ...(dto.submissionMethod && { submissionMethod: dto.submissionMethod }),
         ...(dto.videoUrl !== undefined && { videoUrl: dto.videoUrl }),
+        ...(dto.isFinalQuiz !== undefined && { isFinalQuiz: dto.isFinalQuiz }),
         materialFileUrl,
       },
     });

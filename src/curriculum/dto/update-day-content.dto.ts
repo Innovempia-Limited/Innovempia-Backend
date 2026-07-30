@@ -29,7 +29,11 @@ export class UpdateDayContentDto {
   materialFile?: string;
 
   @ApiPropertyOptional({ example: 'https://example.com/video.mp4' })
-  @IsOptional()
   @IsString()
+  @IsOptional()
   videoUrl?: string;
+
+  @ApiPropertyOptional({ example: false, description: 'Mark this day as the final quiz for the sub-category' })
+  @IsOptional()
+  isFinalQuiz?: boolean;
 }

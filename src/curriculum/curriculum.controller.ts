@@ -39,6 +39,7 @@ export class CurriculumController {
         submissionMethod: { type: 'string', enum: ['GITHUB_LINK', 'PASTED_CODE', 'FILE_UPLOAD', 'MIXED'] },
         materialFile: { type: 'string', format: 'binary' },
         videoUrl: { type: 'string' },
+        isFinalQuiz: { type: 'boolean', example: false },
       },
     },
   })
@@ -76,6 +77,7 @@ export class CurriculumController {
         submissionMethod: { type: 'string', enum: ['GITHUB_LINK', 'PASTED_CODE', 'FILE_UPLOAD', 'MIXED'] },
         materialFile: { type: 'string', format: 'binary' },
         videoUrl: { type: 'string' },
+        isFinalQuiz: { type: 'boolean', example: false },
       },
     },
   })

@@ -166,6 +166,7 @@ model DayContent {
   projectDescription  String   @default("")
   projectRequirements String   @default("")
   submissionMethod    String   @default("GITHUB_LINK")
+  isFinalQuiz         Boolean  @default(false)
   isActive            Boolean  @default(true)
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
