@@ -107,6 +107,19 @@ export class CurriculumService {
 
     if (!enrollment) throw new BadRequestException('Active enrollment not found');
 
+    const activeSubscription = await this.prisma.paymentRecord.findFirst({
+      where: { userId, type: 'SUBSCRIPTION', status: 'SUCCESS', isActive: true },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    if (!activeSubscription) {
+      return {
+        message: 'Subscription required. Please subscribe to access materials.',
+        data: null,
+        subscriptionRequired: true,
+      };
+    }
+
     const content = await this.prisma.dayContent.findFirst({
       where: {
         courseId: enrollment.courseId,

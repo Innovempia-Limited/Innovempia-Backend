@@ -180,6 +180,15 @@ export class SubmissionsService {
   }
 
   async getMyMaterials(userId: string) {
+    const activeSubscription = await this.prisma.paymentRecord.findFirst({
+      where: { userId, type: 'SUBSCRIPTION', status: 'SUCCESS', isActive: true },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    if (!activeSubscription) {
+      throw new BadRequestException('Your subscription is not active. Please subscribe to access materials.');
+    }
+
     const submissions = await this.prisma.daySubmission.findMany({
       where: {
         enrollment: { userId },
@@ -229,6 +238,17 @@ export class SubmissionsService {
       );
     } catch (err: any) {
       console.error('Level upgrade email failed', err.message);
+    }
+  }
+
+  private async ensureActiveSubscription(userId: string) {
+    const active = await this.prisma.paymentRecord.findFirst({
+      where: { userId, type: 'SUBSCRIPTION', status: 'SUCCESS', isActive: true },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    if (!active) {
+      throw new BadRequestException('Your subscription is not active. Please subscribe to access materials.');
     }
   }
 
