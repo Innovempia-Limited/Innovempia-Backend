@@ -165,8 +165,8 @@ export class PaymentsService {
       }
     }
 
-    return { 
-      payment, 
+    return {
+      payment: updatedPayment,
       user: {
         id: user.id,
         email: user.email,
@@ -174,7 +174,7 @@ export class PaymentsService {
         lastName: user.lastName,
         phone: user.phone,
         role: user.role,
-      }
+      },
     };
   }
 
