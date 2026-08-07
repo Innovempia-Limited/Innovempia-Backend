@@ -43,7 +43,7 @@ export class PaymentsController {
     return this.paymentsService.cancelSubscription(userId);
   }
 
-  @Get('subscription-status')
+  @Get(['subscription-status', 'subscription/status'])
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Student: Check if I have an active subscription' })
