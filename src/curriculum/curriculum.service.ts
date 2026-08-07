@@ -112,7 +112,7 @@ export class CurriculumService {
       orderBy: { createdAt: 'desc' },
     });
 
-    if (!activeSubscription) {
+    if (!activeSubscription && enrollment.level !== 'BEGINNER') {
       return {
         message: 'Subscription required. Please subscribe to access materials.',
         data: null,

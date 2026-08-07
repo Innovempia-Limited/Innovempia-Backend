@@ -255,6 +255,18 @@ export class SubmissionsService {
       return;
     }
 
+    const freeBeginnerAccess = await this.prisma.enrollment.findFirst({
+      where: {
+        userId,
+        status: 'ACTIVE',
+        level: 'BEGINNER',
+      },
+    });
+
+    if (freeBeginnerAccess) {
+      return;
+    }
+
     const expired = await this.prisma.paymentRecord.findFirst({
       where: {
         userId,
